@@ -1,6 +1,27 @@
 {
- "from": "2.1.277",
- "to": "2.1.278",
- "changes": [],
+ "from": "2.1.278",
+ "to": "2.1.280",
+ "changes": [
+  {
+   "id": "tool-description-suggest-plugins",
+   "name": "Tool Description: Suggest plugins",
+   "was": false,
+   "now": true,
+   "direction": "ADDED nerf",
+   "oldHash": "ed384382936a",
+   "newHash": "91e4579a2209",
+   "sample": "Render an inline card of plugins the user can add to claude.ai, taken from ${SEARCH_TOOL_NAME} results. The card handles all install UI; do not describe the plugins in text.\n\nOffer one when the task i"
+  },
+  {
+   "id": "skill-building-llm-powered-applications-with-claude",
+   "name": "Skill: Building LLM-powered applications with Claude",
+   "was": true,
+   "now": false,
+   "direction": "REMOVED nerf",
+   "oldHash": "2c66d4ecd194",
+   "newHash": "824062cb5fcc",
+   "sample": "# Building LLM-Powered Applications with Claude\n\nThis skill helps you build LLM-powered applications with Claude. Choose the right surface based on your needs, detect the project language, then read t"
+  }
+ ],
  "unverifiable": []
 }

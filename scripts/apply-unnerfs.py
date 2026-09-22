@@ -1352,6 +1352,15 @@ RULES: dict[str, list[Rule]] = {
             unnerf="close with a\ncomplete list of what a real build would still need that the prototype\nskipped",
             description="prototype close: 'short list' -> 'complete list'",
         ),
+        Rule(
+            # v2.1.280 bucket-analysis (bucket-analyze.mjs, 2026-09-22): AI-proposed,
+            # mechanically validated (stock occurs exactly once, no new ${VAR}
+            # introduced, no overlap with an existing rule, --dry-run confirmed).
+            # Full keep/lift review: data/bucket-analysis-2.1.280.json
+            stock="Before publishing, re-read the file once for the mistakes that would\nbreak the demo - an unclosed tag, a handler wired to nothing, a script\nerror - and fix what that read turns up. One read and its fixes are the\nwhole pre-publish check: do not spin up browsers, servers, or test\nharnesses to drive the page, and do not start a second polish pass.",
+            unnerf="Before publishing, verify the file for mistakes that would break the\ndemo - an unclosed tag, a handler wired to nothing, a script error -\nand fix what verification turns up. Test the page and iterate as needed\nto ensure the core interaction works reliably.",
+            description="prototype pre-publish: remove single-read cap and permit verification",
+        ),
     ],
     "skill-prototype-description.md": [
         Rule(
@@ -1541,13 +1550,39 @@ RULES: dict[str, list[Rule]] = {
             description="artifact-design process: drop the 'short'/'compact' cap on the design plan",
         ),
         Rule(
-            # v2.1.257 bucket-analysis (bucket-analyze.mjs, 2026-09-01): AI-proposed,
-            # mechanically validated (stock occurs exactly once, no new ${VAR}
-            # introduced, no overlap with an existing rule, --dry-run confirmed).
-            # Full keep/lift review: data/bucket-analysis-2.1.257.json
-            stock="**Write, look once, publish.** Before publishing you may look at the rendered page once - one screenshot of the local file, or the Artifact tool's preview where it offers one - then one pass of edits for what it shows, without a second look. For a page that charts real numbers, take that look rather than skip it, and spend it on the chart. Don't build a test loop around your own file: no repeated screenshots, no pulling the script out to run it through node, no scripts that probe the DOM. That loop spends the session re-checking what a careful write already settled, while the user waits for a link. Then publish, check once any `window.claude` call the preview couldn't run, and stop: the live page is the review surface, and further polish is the user's to ask for. If the user reports something visibly broken - a clipped column, unreadable text, a control that does nothing - fix that and republish once.",
-            unnerf="**Verify and publish.** Before publishing, inspect the rendered page — via screenshot or the Artifact preview — and iterate on layout, styling, and charts until they meet the design plan. Test scripts or DOM interactions as needed to ensure functionality. Once published, verify any live integrations (such as `window.claude` calls) and resolve any visual or interactive defects.",
-            description="artifact-design: remove single-screenshot cap and permit verification loops",
+            # v2.1.257 bucket-analysis (bucket-analyze.mjs, 2026-09-01), re-anchored
+            # by hand for v2.1.280. The original rule quoted the WHOLE paragraph,
+            # which is why it broke: upstream grew it from 914 to 1412 chars,
+            # adding the ArtifactCheck / `action: "preview"` mechanics, guidance
+            # for pages whose point is logic or stored data, and a carve-out for
+            # content filled into an Artifact type. Re-quoting the expanded
+            # paragraph would have deleted all of that, so the flip is now split
+            # across the three cap-bearing phrases and leaves upstream's mechanics
+            # untouched. Short unique anchors also survive the next edit to the
+            # surrounding prose (UNNERF-GUIDE Part 6, "prefer a short, unique
+            # stock substring"). Full keep/lift review:
+            # data/bucket-analysis-2.1.257.json
+            stock="**Write, look once, publish.**",
+            unnerf="**Write, verify, publish.**",
+            description="artifact-design heading: verify rather than look once",
+        ),
+        Rule(
+            # Lifted too, or the paragraph contradicts itself: the two rules below
+            # tell Claude to iterate and to take screenshots (plural), while this
+            # lead clause still capped it at one look.
+            stock="Before publishing you may look at the rendered page once - one screenshot of the local file",
+            unnerf="Before publishing, inspect the rendered page - screenshots of the local file",
+            description="artifact-design: drop the one-look cap in the lead clause",
+        ),
+        Rule(
+            stock="then one pass of edits for what it shows, without a second look.",
+            unnerf="then iterate on what it shows until the page matches the design plan.",
+            description="artifact-design: drop the single-look cap on pre-publish review",
+        ),
+        Rule(
+            stock="Don't build a test loop around your own file: no repeated screenshots, no pulling the script out to run it through node, no scripts that probe the DOM. That loop spends the session re-checking what a careful write already settled, while the user waits for a link.",
+            unnerf="Verify your own work before publishing: take the screenshots, run the script, and probe the DOM as far as confirming the page renders and behaves correctly requires.",
+            description="artifact-design: permit verification loops before publishing",
         ),
     ],
     "tool-description-product-feedback-draft.md": [

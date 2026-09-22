@@ -1,0 +1,91 @@
+{
+  "ccVersion": "2.1.280",
+  "generatedBy": "bucket-analyze.mjs",
+  "report": [
+    {
+      "file": "skill-artifact-design.md",
+      "verdict": "keep",
+      "reasoning": "The passage regarding 'Write, look once, publish' and verification caps is already addressed by an existing rule registered for this file. Following instructions, overlapping rules should not be proposed."
+    },
+    {
+      "file": "system-reminder-agent-parallel-write-shared-checkout-rules.md",
+      "verdict": "keep",
+      "reasoning": "This is a concurrency integrity rule preventing parallel agents sharing a working directory from corrupting each other's work. It is a genuine operational constraint rather than an artificial hold-back nerf."
+    },
+    {
+      "file": "tool-result-agent-parallel-write-worktree-recommendation.md",
+      "verdict": "keep",
+      "reasoning": "This is an operational recommendation to use git worktree isolation when parallel code-writing agents run simultaneously. It protects file integrity and is not a brevity restriction."
+    },
+    {
+      "file": "skill-prototype.md",
+      "verdict": "lift",
+      "reasoning": "The stock prompt restricts pre-publish verification to a single re-read and explicitly bans test harnesses or a second polish pass. This is an artificial process shortcut that prevents thorough verification and should be lifted.",
+      "rule": {
+        "stock": "Before publishing, re-read the file once for the mistakes that would\nbreak the demo - an unclosed tag, a handler wired to nothing, a script\nerror - and fix what that read turns up. One read and its fixes are the\nwhole pre-publish check: do not spin up browsers, servers, or test\nharnesses to drive the page, and do not start a second polish pass.",
+        "unnerf": "Before publishing, verify the file for mistakes that would break the\ndemo - an unclosed tag, a handler wired to nothing, a script error -\nand fix what verification turns up. Test the page and iterate as needed\nto ensure the core interaction works reliably.",
+        "description": "prototype pre-publish: remove single-read cap and permit verification"
+      }
+    },
+    {
+      "file": "tool-result-auto-mode-unavailable-consecutive-no-verdict-agent.md",
+      "verdict": "keep",
+      "reasoning": "This tool result informs the model of consecutive server-side safety verdict failures. Halting and waiting for user input is standard error handling to avoid infinite failing loops against an unavailable service."
+    },
+    {
+      "file": "tool-result-auto-mode-unavailable-consecutive-no-verdict.md",
+      "verdict": "keep",
+      "reasoning": "Halting turn execution when the safety service consecutively fails to return verdicts prevents spinning in a broken retry loop. This is an external infrastructure failure constraint."
+    },
+    {
+      "file": "skill-setup-cowork.md",
+      "verdict": "keep",
+      "reasoning": "The brevity restriction capping messages to two or three sentences is already handled by an existing rule for this file. Per instructions, do not propose overlapping rules."
+    },
+    {
+      "file": "tool-description-searchplugins-extended-guidance.md",
+      "verdict": "keep",
+      "reasoning": "This instructs Claude not to search for plugins unasked when answering simple one-off questions directly. Per calibration example 2, this is appropriate UX to avoid intrusive unsolicited offers."
+    },
+    {
+      "file": "tool-description-suggest-plugins.md",
+      "verdict": "keep",
+      "reasoning": "This prevents rendering unsolicited recommendation cards when the user asked a direct question or plugin relevance is uncertain. It governs unprompted suggestion UX rather than substantive work."
+    },
+    {
+      "file": "tool-result-artifact-read-failed-do-not-retry.md",
+      "verdict": "keep",
+      "reasoning": "Instructing the agent not to retry a failed read prevents deterministic infinite loops on unreadable artifacts. This is standard mechanical error handling."
+    },
+    {
+      "file": "tool-result-cloud-review-stopped-externally.md",
+      "verdict": "keep",
+      "reasoning": "Instructs Claude not to restart a cloud review that was stopped externally or by the server unless requested. Respecting external user cancellation is an operational correctness requirement."
+    },
+    {
+      "file": "system-prompt-responsive-mode.md",
+      "verdict": "keep",
+      "reasoning": "Responsive mode is designed for live terminal UX where immediate acknowledgement before tool execution is required. Eliminating corporate flattery and filler aligns directly with concise, unnerfed interaction."
+    },
+    {
+      "file": "tool-result-auto-mode-unavailable-consecutive-no-verdict-agent.md",
+      "verdict": "keep",
+      "reasoning": "Stopping execution after repeated safety verdict outages prevents recursive retries against failing infrastructure. This is an external system failure recovery mechanism."
+    },
+    {
+      "file": "tool-result-auto-mode-unavailable-consecutive-no-verdict.md",
+      "verdict": "keep",
+      "reasoning": "Waiting for the user's next message after consecutive safety verdict failures avoids automated failure loops during server outages. It is genuine operational error recovery."
+    },
+    {
+      "file": "system-reminder-responsive-mode.md",
+      "verdict": "keep",
+      "reasoning": "This reminder reinforces responsive mode terminal acknowledgement before entering deep tool execution. It serves user-facing latency in an interactive shell rather than restricting task capability."
+    },
+    {
+      "file": "tool-result-cloud-review-account-mismatch.md",
+      "verdict": "keep",
+      "reasoning": "Instructs Claude not to start unauthorized reviews when an account or organization mismatch occurs. Preventing unprompted retries across account boundaries ensures operational correctness."
+    }
+  ]
+}

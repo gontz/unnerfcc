@@ -3,7 +3,7 @@ name: 'Data: Tool use concepts'
 description: >-
   Conceptual foundations of tool use with the Claude API including tool
   definitions, tool choice, and best practices
-ccVersion: 2.1.272
+ccVersion: 2.1.280
 -->
 # Tool Use Concepts
 
@@ -110,7 +110,7 @@ Control when Claude uses tools:
 
 Any `tool_choice` value can also include `"disable_parallel_tool_use": true` to force Claude to use at most one tool per response. By default, Claude may request multiple tool calls in a single response.
 
-**{{FABLE_NAME}}, {{MYTHOS_NAME}}, and Mythos Preview reject forced tool use:** `{"type": "any"}` and `{"type": "tool", "name": ...}` return a 400 there (`tool_choice: type "tool" and "any" are not supported for this model.` - on `count_tokens` and Batches too). It is a model-specific restriction ({{PREV_FABLE_NAME}} and {{OPUS_NAME}} accept them). Use `{"type": "auto"}` and state the expectation in the prompt ("Use the get_weather tool to answer") - `strict: true` on the tool keeps the schema-valid-arguments guarantee `any` gave you - or structured outputs (`output_config.format`) when the forced call only existed to extract JSON. `auto` and `none` are unaffected; `disable_parallel_tool_use` with `auto` still means at most one call (the "exactly one" combination with `any`/`tool` is gone). Combining `tool_choice` `any` with `strict: true` applies only on models that support forced tool use. See `shared/model-migration.md` -> Migrating to {{FABLE_NAME}} from {{PREV_FABLE_NAME}}.
+**{{FABLE_NAME}}, {{MYTHOS_NAME}}, {{OPUS_NEXT_NAME}}, and Mythos Preview reject forced tool use:** `{"type": "any"}` and `{"type": "tool", "name": ...}` return a 400 there (`tool_choice: type "tool" and "any" are not supported for this model.` - on `count_tokens` and Batches too). It is a model-specific restriction ({{PREV_FABLE_NAME}} and {{OPUS_NAME}} accept them). Because `auto` does not guarantee a call, check that one was made and retry if it wasn't. Use `{"type": "auto"}` and state the expectation in the prompt ("Use the get_weather tool to answer") - `strict: true` on the tool keeps the schema-valid-arguments guarantee `any` gave you - or structured outputs (`output_config.format`) when the forced call only existed to extract JSON. `auto` and `none` are unaffected; `disable_parallel_tool_use` with `auto` still means at most one call (the "exactly one" combination with `any`/`tool` is gone). Combining `tool_choice` `any` with `strict: true` applies only on models that support forced tool use. See `shared/model-migration.md` -> Migrating to {{FABLE_NAME}} from {{PREV_FABLE_NAME}}.
 
 ---
 
@@ -289,7 +289,7 @@ For full documentation, use WebFetch:
 
 ## Mid-conversation tool changes (Beta)
 
-**Beta header `mid-conversation-tool-changes-2026-07-01`; {{OPUS_NAME}} onward.** Normally `tools` is fixed for a conversation's lifetime - editing it changes the very front of the prompt prefix and invalidates the entire cache (see `prompt-caching.md` § Invalidation hierarchy). This feature lets you add and remove tools between turns while the cached prefix survives.
+**Beta header `mid-conversation-tool-changes-2026-07-01`; {{OPUS_NAME}}, {{PREV_OPUS_NAME}}, {{PREV_FABLE_NAME}}, {{FABLE_NAME}}, {{PREV_MYTHOS_NAME}}, and {{MYTHOS_NAME}} - not {{SONNET_NAME}}; not available on Microsoft Foundry (availability: `shared/platform-availability.md`).** Normally `tools` is fixed for a conversation's lifetime - editing it changes the very front of the prompt prefix and invalidates the entire cache (see `prompt-caching.md` § Invalidation hierarchy). This feature lets you add and remove tools between turns while the cached prefix survives.
 
 Both operations are content blocks on a `{"role": "system", ...}` message appended to `messages[]`, and both reference a tool by name via a `tool_reference`:
 
@@ -394,7 +394,9 @@ For full documentation, use WebFetch:
 
 Computer use lets Claude interact with a desktop environment (screenshots, mouse, keyboard). It is a client-side tool - your application provides the environment and executes the actions Claude requests; Anthropic processes the screenshots and action requests in real time but does not host the environment or retain the data.
 
-For full documentation, use WebFetch:
+**Two request shapes.** The current one is the **computer toolset** - GA on the Claude API and Google Cloud, no beta header: one `tools` entry `{"type": "computer_toolset_20260801"}` with **no `name`** and no display dimensions, plus an optional `configs` map to turn member tools off (`{"zoom": {"enabled": false}}`; all 17 members, `zoom` included, are on by default). Claude's calls are `tool_use` blocks whose `name` is the member (`screenshot`, `left_click`, `type`, `zoom`, ...) carrying `"toolset_name": "computer"`, often several per turn; return one `tool_result` per call in the next `user` message, **each echoing `"toolset_name": "computer"`** (only `screenshot` / `zoom` need an image; `OK` suffices for the rest). Coordinates are in the pixel space of the full screenshots you return, also after a `zoom`, and screenshots must already fit the model's image limits. The earlier `computer_20251124` tool (beta `computer-use-2025-11-24`, a `name: "computer"` entry with `display_width_px` / `display_height_px`, actions in `input.action`) keeps working on the models and platforms that offer it - Bedrock, Claude Platform on AWS, and Foundry offer only the earlier beta versions today - and the two forms can't share a request. **{{OPUS_NEXT_NAME}} accepts only the toolset**: `computer_20251124` returns a 400 there (`shared/model-migration.md` -> Migrating to {{OPUS_NEXT_NAME}} -> Breaking change 4 has the request and agent-loop changes; test them on {{OPUS_NAME}}, which accepts both).
+
+For full documentation (member reference, batch actions, scaling, the `computer_20251124` migration steps), use WebFetch:
 
 - URL: `https://platform.claude.com/docs/en/agents-and-tools/computer-use/overview`
 

@@ -1,9 +1,7 @@
 <!--
 name: 'System Reminder: /btw side question'
-description: System reminder for /btw slash command side questions without tools
-ccVersion: 2.1.270
-variables:
-  - USER_QUESTION
+description: System reminder for /btw slash command side questions without tools.
+ccVersion: 2.1.280
 -->
 <system-reminder>This is a side question from the user. You must answer this question directly in a single response.
 
@@ -23,4 +21,3 @@ CRITICAL CONSTRAINTS:
 
 Simply answer the question with the information you have.</system-reminder>
 
-${USER_QUESTION}

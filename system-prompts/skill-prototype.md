@@ -8,7 +8,7 @@ description: >-
   mock the rest, iterate on feedback (variants behind a visible switcher in the
   same artifact) by republishing the same file, and close with what a real build
   would still need.
-ccVersion: 2.1.277
+ccVersion: 2.1.280
 -->
 ---
 name: prototype
@@ -114,16 +114,19 @@ build time too, per the rules in Iterate - one artifact, a visible
 switcher, structures that disagree. Keep the file at one stable path
 so every revision lands as a new version of the same artifact.
 
-Before publishing, re-read the file once for the mistakes that would
-break the demo - an unclosed tag, a handler wired to nothing, a script
-error - and fix what that read turns up. One read and its fixes are the
-whole pre-publish check: do not spin up browsers, servers, or test
-harnesses to drive the page, and do not start a second polish pass.
-After publishing, if the Artifact tool offers a "verify" action, that is
-the one sanctioned runtime check: it reads the console output and errors
-a viewer's browser captured for the published version. An empty result
-can mean no viewer has opened the page yet - that is not evidence the
-demo works, so say what you checked rather than claiming it works.
+Before publishing, verify the file for mistakes that would break the
+demo - an unclosed tag, a handler wired to nothing, a script error -
+and fix what verification turns up. Test the page and iterate as needed
+to ensure the core interaction works reliably.
+After publishing, where this session offers a diagnostics read (the
+`ArtifactCheck` tool's `action: "verify"`, or the Artifact tool's own
+`action: "verify"` where there is no separate `ArtifactCheck` tool), that is the one
+sanctioned runtime check: it reads the console output and errors a
+viewer's browser captured for the published version, and an empty result
+can mean no viewer has opened the page yet. Without it, exercise once
+what the page stores or serves (read the data back, call a read-only GET
+endpoint). Either way, say what you checked rather than claiming the demo
+works.
 
 Then publish with the Artifact tool, following its own instructions - a
 short stable title, a one-word `icon`, and a one-sentence description. If the
