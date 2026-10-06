@@ -2,9 +2,9 @@
 name: 'Tool Result: Remote machine still not connected'
 description: >-
   Notes that the machine still has not connected and asks the user to check
-  their machine.
-ccVersion: 2.1.251
+  Claude on that computer.
+ccVersion: 2.1.292
 variables:
   - REASON
 -->
-, and it still has not — ${REASON}. Nothing was sent. Ask the user to check Claude Code on their machine.
+, and it still has not — ${REASON}. Nothing was sent. Ask the user to check that Claude is running on that computer.

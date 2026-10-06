@@ -7,7 +7,7 @@ ccVersion: 2.1.219
 variables:
   - REPORT_FINDINGS_TOOL_NAME
 -->
-Target **min(files_changed, 4) findings**, most-severe first, reported
+Report **every qualifying finding**, most-severe first, reported
 in one ${REPORT_FINDINGS_TOOL_NAME} call with `{level, findings}` — each
 entry has `file`, `line`, `summary`, `short_summary` (≤60 characters),
 and `failure_scenario`. If you have fewer, do one more pass focused on the

@@ -1,0 +1,8 @@
+<!--
+name: 'Tool Description: WebSearch mode selection guidelines'
+description: Instructs when to use standard versus extended mode with the WebSearch tool.
+ccVersion: 2.1.292
+variables:
+  - WEB_SEARCH_TOOL_NAME
+-->
+${WEB_SEARCH_TOOL_NAME} takes a `mode`. Use "standard" by default: it is the normal search, quick and cheap. Use "extended" only when a "standard" result comes back thin, off-target or possibly outdated, or from the start for hard-to-find or niche facts, very recent events, prices and availability, and multi-step research: it is thorough and fresh but several times the cost. When you plan several searches, send them in the same turn.

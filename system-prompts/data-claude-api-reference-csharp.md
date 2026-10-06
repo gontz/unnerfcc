@@ -3,7 +3,7 @@ name: 'Data: Claude API reference — C#'
 description: >-
   C# SDK reference including installation, client initialization, basic
   requests, streaming, and tool use
-ccVersion: 2.1.263
+ccVersion: 2.1.292
 -->
 # Claude API - C#
 
@@ -42,7 +42,7 @@ Write from this table instead of reflecting the SDK assembly. Endpoint column te
 | Programmatic tool calling | non-beta | `CodeExecutionTool20260120`, `ToolResultBlockParam`, `ContentBlockParam` |
 | Task budgets | beta | `BetaOutputConfig` with `TaskBudget = new BetaTokenTaskBudget { ... }` |
 | Tool search | non-beta | `new ToolUnion(new ToolSearchToolRegex20251119 { Type = ToolSearchToolRegex20251119Type.ToolSearchToolRegex20251119 })` - `Type` must be set explicitly. |
-| Web search | non-beta | `new ToolUnion(new WebSearchTool20260209())` - the latest variant with dynamic filtering ({{FABLE_NAME}} + {{OPUS_NAME}} + Opus 4.8/4.7/4.6 + {{SONNET_NAME}} + Sonnet 4.6). For older models or Vertex, use `WebSearchTool20250305()` |
+| Web search | non-beta | `new ToolUnion(new WebSearchTool20260209())` - the latest variant with dynamic filtering ({{FABLE_NAME}} + {{OPUS_NAME}} + {{PREV_OPUS_NAME}} + Opus 4.8/4.7/4.6 + {{SONNET_NAME}} + {{PREV_SONNET_NAME}} + Sonnet 4.6). For older models or Vertex, use `WebSearchTool20250305()` |
 
 ### Discovering type and member names
 
@@ -151,8 +151,9 @@ foreach (var text in response.Content.Select(b => b.Value).OfType<TextBlock>())
 
 **Adaptive thinking is the recommended mode for Claude 4.6+ models.** Claude decides dynamically when and how much to think.
 
-> **Fable 5, {{OPUS_NAME}}, Opus 4.8, Opus 4.7, Opus 4.6, and Sonnet 4.6:** Use adaptive thinking (below). `new ThinkingConfigEnabled { BudgetTokens = N }` is removed on Fable 5, {{OPUS_NAME}}, Opus 4.8, and 4.7 (400 if sent); deprecated on Opus 4.6 and Sonnet 4.6.
-> **{{OPUS_NAME}}:** thinking is on by default - omitting `Thinking` runs adaptive (`ThinkingConfigAdaptive` is equivalent), unlike Opus 4.8/4.7 where omitting it meant no thinking. `ThinkingConfigDisabled` is accepted only at effort `high` or lower; pairing it with `xhigh`/`max` returns a 400.
+> **Fable 5, {{OPUS_NAME}}, {{PREV_OPUS_NAME}}, Opus 4.8, Opus 4.7, Opus 4.6, and Sonnet 4.6:** Use adaptive thinking (below). `new ThinkingConfigEnabled { BudgetTokens = N }` is removed on Fable 5, {{OPUS_NAME}}, {{PREV_OPUS_NAME}}, Opus 4.8, and 4.7 (400 if sent); deprecated on Opus 4.6 and Sonnet 4.6.
+> **{{OPUS_NAME}}:** thinking is always on - omit `Thinking` (or send `ThinkingConfigAdaptive`, which is equivalent); `ThinkingConfigDisabled` returns a 400 at every effort, as does a thinking budget. Control depth with `OutputConfig.Effort` instead - the default is `medium` on this model, where {{PREV_OPUS_NAME}} defaults to `high`.
+> **{{PREV_OPUS_NAME}}:** thinking is on by default - omitting `Thinking` runs adaptive (`ThinkingConfigAdaptive` is equivalent), unlike Opus 4.8/4.7 where omitting it meant no thinking. `ThinkingConfigDisabled` is accepted only at effort `high` or lower; pairing it with `xhigh`/`max` returns a 400.
 > **Older models:** Use `new ThinkingConfigEnabled { BudgetTokens = N }` (budget must be < `MaxTokens`, min 1024).
 
 ```csharp
@@ -164,7 +165,7 @@ var response = await client.Messages.Create(new MessageCreateParams
     MaxTokens = 16000,
     // ThinkingConfigParam? implicitly converts from the concrete variant classes -
     // no wrapper needed.
-    // display opt-in: default is omitted (empty thinking text) on Fable 5/5.1, Mythos 5/5.1, {{OPUS_NAME}}, Opus 4.8/4.7, and {{SONNET_NAME}}
+    // display opt-in: default is omitted (empty thinking text) on Fable 5/5.1, Mythos 5/5.1, {{OPUS_NAME}}, {{PREV_OPUS_NAME}}, Opus 4.8/4.7, {{SONNET_NAME}}, and {{PREV_SONNET_NAME}}
     Thinking = new ThinkingConfigAdaptive { Display = Display.Summarized },
     Messages =
     [
@@ -346,7 +347,7 @@ var one = await client.Models.Retrieve("{{OPUS_ID}}");
 
 Set `MaxTokens = 128000` on `client.Messages` and use the streaming path (see `streaming.md`). On Claude 4+ models, 128k output is native - no `output-128k-*` beta header or beta namespace is needed.
 
-**Prefilling the assistant message** (putting a trailing `Role.Assistant` message in the input) is **not supported** on {{FABLE_NAME}}, {{OPUS_NAME}}, Opus 4.8, Opus 4.7, Opus 4.6, and Sonnet 4.6 - requests return a 400. Use `OutputConfig.Format` (structured outputs) instead.
+**Prefilling the assistant message** (putting a trailing `Role.Assistant` message in the input) is **not supported** on {{FABLE_NAME}}, {{OPUS_NAME}}, {{PREV_OPUS_NAME}}, Opus 4.8, Opus 4.7, Opus 4.6, and Sonnet 4.6 - requests return a 400. Use `OutputConfig.Format` (structured outputs) instead.
 
 ## Stop Details
 

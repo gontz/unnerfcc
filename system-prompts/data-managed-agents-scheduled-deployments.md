@@ -3,7 +3,7 @@ name: 'Data: Managed Agents scheduled deployments'
 description: >-
   Managed Agents reference doc for scheduled deployments — cron-scheduled
   autonomous agent sessions
-ccVersion: 2.1.272
+ccVersion: 2.1.292
 -->
 # Managed Agents - Scheduled Deployments
 
@@ -100,7 +100,7 @@ Deployment budget update semantics differ from a session's:
 
 ## Deployment runs
 
-Every trigger attempt - successful or not - writes a **deployment run** record (`drun_` prefix), so you can audit failures independent of the session lifecycle. A successful run carries the created `session_id`; follow that session via the event stream (`shared/managed-agents-events.md`) or webhooks (`shared/managed-agents-webhooks.md`) as usual. A failed run carries an `error` whose `type` explains why session creation was rejected.
+Every trigger attempt - successful or not - writes a **deployment run** record (`drun_` prefix), so you can audit failures independent of the session lifecycle. A successful run carries the created `session_id`; follow that session via the event stream (`shared/managed-agents-events.md`) or webhooks (`shared/managed-agents-webhooks.md`) as usual. No client is attached when a run fires, so answer calls that pause for approval (`auto` with no determination, or `always_ask`, the MCP default) from a `session.status_idled` webhook handler, or the run waits indefinitely. A failed run carries an `error` whose `type` explains why session creation was rejected.
 
 ```python
 # All runs for a deployment

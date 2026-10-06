@@ -4,7 +4,7 @@ description: >-
   Reference documentation for Managed Agents multiagent sessions, covering when
   to delegate, coordinator rosters, threads, session stream events, the advisor,
   subagent tool permissions, and pitfalls
-ccVersion: 2.1.270
+ccVersion: 2.1.292
 -->
 # Managed Agents - Multiagent Sessions
 
@@ -26,7 +26,9 @@ agent = client.beta.agents.create(
     description="Researches a question end to end. A copy can be spawned to own one well-scoped sub-question.",
     model="{{OPUS_ID}}",
     system="You are a research assistant. When a request splits into independent sub-questions, delegate each to a copy of yourself, one self-contained task per copy, then verify and combine their reports.",
-    tools=[{"type": "agent_toolset_20260401"}],
+    tools=[{"type": "agent_toolset_20260401",
+            "default_config": {"permission_policy": {"type": "auto"}},
+            "configs": [{"name": n, "enabled": True} for n in ("web_fetch", "web_search")]}],  # research needs the web
     multiagent={"type": "coordinator", "agents": [{"type": "self"}]},  # the only change vs. a single agent
 )
 
@@ -43,7 +45,7 @@ worker = client.beta.agents.create(
     system="Answer exactly the question you are given. Search and read as much as you need, then report concise findings with a source URL or file path for every claim.",
     tools=[{
         "type": "agent_toolset_20260401",
-        "default_config": {"enabled": False},
+        "default_config": {"enabled": False, "permission_policy": {"type": "auto"}},
         "configs": [{"name": n, "enabled": True} for n in ("read", "glob", "grep", "web_fetch", "web_search")],
     }],
 )
@@ -53,7 +55,9 @@ lead = client.beta.agents.create(
     description="Plans and synthesizes research. A copy can be spawned to own one large sub-analysis.",
     model="{{OPUS_ID}}",
     system="Plan the work. Delegate each independent, reading-heavy question to Web researcher, one self-contained task per spawn, several in parallel. Keep verification and the final synthesis for yourself; spawn a copy of yourself only for a sub-analysis that needs your full capability.",
-    tools=[{"type": "agent_toolset_20260401"}],
+    tools=[{"type": "agent_toolset_20260401",
+            "default_config": {"permission_policy": {"type": "auto"}},
+            "configs": [{"name": n, "enabled": True} for n in ("web_fetch", "web_search")]}],  # the lead verifies sources itself
     multiagent={"type": "coordinator", "agents": [worker.id, {"type": "self"}]},
 )
 ```
@@ -66,7 +70,7 @@ reviewer = client.beta.agents.create(
     description="Read-only reviewer for race conditions, deadlocks, lost updates, and retry/idempotency bugs. Give it the changed file paths and the invariants that must hold; it reports findings with file:line evidence. Spawn several on the same change for independent reviews.",
     model="{{SONNET_ID}}",
     system="Review only the files you are pointed at. Look for concurrency bugs: unsynchronized shared state, lock ordering, non-atomic read-modify-write, retries without idempotency. Report each finding as file:line, the interleaving that triggers it, and a suggested fix; say plainly if you found none.",
-    tools=[{"type": "agent_toolset_20260401", "default_config": {"enabled": False},
+    tools=[{"type": "agent_toolset_20260401", "default_config": {"enabled": False, "permission_policy": {"type": "auto"}},
             "configs": [{"name": n, "enabled": True} for n in ("read", "glob", "grep")]}],
 )
 test_writer = client.beta.agents.create(
@@ -74,7 +78,7 @@ test_writer = client.beta.agents.create(
     description="Writes and runs tests. Give it the module path, the behavior to pin down, and the test command; it adds test files, runs them, and reports results with output.",
     model="{{SONNET_ID}}",
     system="Write focused tests for the behavior you are given, run them with the command you are given, and report pass/fail, the relevant output, and the paths of files you added. Do not edit non-test code; if the code under test looks wrong, report that instead.",
-    tools=[{"type": "agent_toolset_20260401", "default_config": {"enabled": True},
+    tools=[{"type": "agent_toolset_20260401", "default_config": {"enabled": True, "permission_policy": {"type": "auto"}},
             "configs": [{"name": n, "enabled": False} for n in ("web_fetch", "web_search")]}],
 )
 lead = client.beta.agents.create(
@@ -82,7 +86,9 @@ lead = client.beta.agents.create(
     description="Plans and makes code changes and integrates specialist reports. A copy can be spawned to own one independent change.",
     model="{{OPUS_ID}}",
     system="Make the change yourself. Then, in parallel, send the changed paths and invariants to three Concurrency reviewers and the module path and test command to Test writer. Merge and de-duplicate the reviewers' findings, check each against the code before acting on it, fix, and have Test writer re-run. Keep design decisions and the final summary for yourself.",
-    tools=[{"type": "agent_toolset_20260401"}],
+    tools=[{"type": "agent_toolset_20260401",
+            "default_config": {"permission_policy": {"type": "auto"}},
+            "configs": [{"name": n, "enabled": False} for n in ("web_fetch", "web_search")]}],
     multiagent={"type": "coordinator", "agents": [reviewer.id, test_writer.id, {"type": "self"}]},
 )
 ```
@@ -108,7 +114,9 @@ orchestrator = client.beta.agents.create(
     name="Engineering lead",
     model="{{OPUS_ID}}",
     system="You coordinate engineering work. Delegate code review to the reviewer and test writing to the test agent.",
-    tools=[{"type": "agent_toolset_20260401"}],
+    tools=[{"type": "agent_toolset_20260401",
+            "default_config": {"permission_policy": {"type": "auto"}},
+            "configs": [{"name": n, "enabled": False} for n in ("web_fetch", "web_search")]}],
     multiagent={
         "type": "coordinator",
         "agents": [
@@ -201,7 +209,7 @@ agent = client.beta.agents.create(
 )
 ```
 
-({{OPUS_NAME}} is the default advisor choice. It is a redacted advisor - the agent reads its advice server-side, but the client sees `[{"type": "redacted"}]`; see *Plaintext vs redacted delivery* below. For client-readable advice, a plaintext advisor such as `claude-opus-4-8` is valid only when the agent's own model is `claude-opus-4-8` or below - agents on {{OPUS_NAME}}, {{FABLE_NAME}}, or {{MYTHOS_NAME}} can only pair with redacted advisors, so client-readable advice is not available for them (pairing table: `shared/tool-use-concepts.md`).)
+({{OPUS_NAME}} is the default advisor choice. It is a redacted advisor - the agent reads its advice server-side, but the client sees `[{"type": "redacted"}]`; see *Plaintext vs redacted delivery* below. For client-readable advice, a plaintext advisor such as `claude-opus-4-8` is valid only when the agent's own model is `claude-opus-4-8` or below - agents on {{OPUS_NAME}}, {{PREV_OPUS_NAME}}, {{SONNET_NAME}}, {{FABLE_NAME}}, or {{MYTHOS_NAME}} can only pair with redacted advisors, so client-readable advice is not available for them (pairing table: `shared/tool-use-concepts.md`).)
 
 **Rules:**
 - **At most one advisor entry per roster.** The entry occupies the reserved roster name `anthropic.advisor` - a roster that also lists a member literally named `anthropic.advisor` is a 400. In responses, the advisor entry is echoed **last** in the roster regardless of submitted position.
@@ -230,7 +238,7 @@ No `agent.tool_use` and no `agent.thread_message_sent` are emitted for a consult
 
 ## Tool permissions and custom tools from subagent threads
 
-When a subagent needs your client (a tool call that paused for approval - `always_ask`, or `auto` with no determination - or a custom tool result), the request is **cross-posted to the primary thread** with `session_thread_id` identifying the originating thread - so you only need to watch the session stream. Reply with `user.tool_confirmation` (carrying `tool_use_id`) or `user.custom_tool_result` (carrying `custom_tool_use_id`), and **echo the `session_thread_id` from the originating event** (the SDK param type and docstring expect it). The server also routes by the tool-use ID, so the echo is belt-and-suspenders rather than load-bearing - but include it.
+When a subagent needs your client (a tool call that paused for approval - `always_ask`, or `auto` with no determination - or a custom tool result), the request is **cross-posted to the primary thread** with `session_thread_id` identifying the originating thread - so you only need to watch the session stream. Reply with `user.tool_confirmation` (`tool_use_id`) or `user.custom_tool_result` (`custom_tool_use_id`); the server routes by that id, so you do not send `session_thread_id` back.
 
 ```python
 for event_id in stop.event_ids:
@@ -238,10 +246,9 @@ for event_id in stop.event_ids:
     confirmation = {
         "type": "user.tool_confirmation",
         "tool_use_id": event_id,
-        "result": "allow",
+        # you write approve(): ask a person or apply your own rule; deny when unattended
+        "result": "allow" if approve(pending) else "deny",
     }
-    if pending.session_thread_id is not None:
-        confirmation["session_thread_id"] = pending.session_thread_id
     client.beta.sessions.events.send(session.id, events=[confirmation])
 ```
 

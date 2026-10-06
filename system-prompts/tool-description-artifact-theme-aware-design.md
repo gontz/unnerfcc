@@ -3,6 +3,13 @@ name: 'Tool Description: Artifact theme-aware styling'
 description: >-
   Rules for supporting light, dark, and system color themes with CSS tokens in
   published artifacts.
-ccVersion: 2.1.280
+ccVersion: 2.1.292
 -->
-**Theme-aware**: Pages render in the viewer's theme, which has three states: an explicit choice stamps `data-theme="dark"` / `data-theme="light"` on the root element, and the default "system" setting stamps nothing — only `prefers-color-scheme` separates light from dark. Define the complete light palette as tokens on bare `:root` (dark-first designs swap the roles consistently); redefine only the tokens under `@media (prefers-color-scheme: dark)`, guarded as `:root:not([data-theme="light"])`; redefine them again under `:root[data-theme="dark"]` so the toggle wins in both directions, and set `color-scheme: dark` wherever the dark palette applies — both dark blocks, or bare `:root` in a dark-first or single-dark design (the skeleton pins `light` on `:root`) — so form controls and scrollbars follow. Never give a color its only definition inside a media or `[data-theme]` block, and give `body` an explicit token background — the viewer paints its own ground behind the page, so a transparent body borrows the host's theme. A design that deliberately commits to a single look may skip the dark blocks but still paints background and colors explicitly.
+**Theme-aware**: The page renders in the viewer's theme, which has three states: an explicit choice sets `data-theme="dark"` or `data-theme="light"` on the root element, and the default "system" setting sets nothing, so for most viewers only `prefers-color-scheme` tells light from dark. Define every color as a token, in this shape (token names and count are the design's own):
+```css
+:root { --bg: …; --fg: …; --accent: … }  /* every token, light values */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: …; --fg: …; --accent: …; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: …; --fg: …; --accent: …; color-scheme: dark }  /* same dark values, so the toggle wins both ways */
+body { background: var(--bg); color: var(--fg) }
+```
+Every token gets its first definition on bare `:root`; the two dark blocks only redefine tokens, and their `color-scheme: dark` makes form controls and scrollbars follow. No color has its only definition inside a media or `[data-theme]` block, and no component rule uses a literal color that reads in one theme only. `body` keeps that explicit token background: the viewer paints its own ground behind the page, so a transparent body shows the host's theme instead. A dark-first design mirrors the whole shape, selectors included: dark values and `color-scheme: dark` on bare `:root` (the skeleton pins `light` there), light values and `color-scheme: light` under `(prefers-color-scheme: light)` guarded `:root:not([data-theme="dark"])` and again under `:root[data-theme="light"]`. A design that deliberately commits to a single look may drop the two dark blocks but still sets the background and every color explicitly, plus `color-scheme: dark` on `:root` if that look is dark.

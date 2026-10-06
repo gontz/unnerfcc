@@ -3,7 +3,7 @@ name: 'Data: Tool use concepts'
 description: >-
   Conceptual foundations of tool use with the Claude API including tool
   definitions, tool choice, and best practices
-ccVersion: 2.1.280
+ccVersion: 2.1.292
 -->
 # Tool Use Concepts
 
@@ -110,7 +110,7 @@ Control when Claude uses tools:
 
 Any `tool_choice` value can also include `"disable_parallel_tool_use": true` to force Claude to use at most one tool per response. By default, Claude may request multiple tool calls in a single response.
 
-**{{FABLE_NAME}}, {{MYTHOS_NAME}}, {{OPUS_NEXT_NAME}}, and Mythos Preview reject forced tool use:** `{"type": "any"}` and `{"type": "tool", "name": ...}` return a 400 there (`tool_choice: type "tool" and "any" are not supported for this model.` - on `count_tokens` and Batches too). It is a model-specific restriction ({{PREV_FABLE_NAME}} and {{OPUS_NAME}} accept them). Because `auto` does not guarantee a call, check that one was made and retry if it wasn't. Use `{"type": "auto"}` and state the expectation in the prompt ("Use the get_weather tool to answer") - `strict: true` on the tool keeps the schema-valid-arguments guarantee `any` gave you - or structured outputs (`output_config.format`) when the forced call only existed to extract JSON. `auto` and `none` are unaffected; `disable_parallel_tool_use` with `auto` still means at most one call (the "exactly one" combination with `any`/`tool` is gone). Combining `tool_choice` `any` with `strict: true` applies only on models that support forced tool use. See `shared/model-migration.md` -> Migrating to {{FABLE_NAME}} from {{PREV_FABLE_NAME}}.
+**{{FABLE_NAME}}, {{MYTHOS_NAME}}, {{OPUS_NAME}}, and {{SONNET_NAME}} reject forced tool use:** `{"type": "any"}` and `{"type": "tool", "name": ...}` return a 400 there (`tool_choice: type "tool" and "any" are not supported for this model.` - on `count_tokens` and Batches too). It is a model-specific restriction ({{PREV_FABLE_NAME}} and {{PREV_OPUS_NAME}} accept them). Because `auto` does not guarantee a call, check that one was made and retry if it wasn't. Use `{"type": "auto"}` and state the expectation in the prompt ("Use the get_weather tool to answer") - `strict: true` on the tool keeps the schema-valid-arguments guarantee `any` gave you - or structured outputs (`output_config.format`) when the forced call only existed to extract JSON. `auto` and `none` are unaffected; `disable_parallel_tool_use` with `auto` still means at most one call (the "exactly one" combination with `any`/`tool` is gone). Combining `tool_choice` `any` with `strict: true` applies only on models that support forced tool use. See `shared/model-migration.md` -> Migrating to {{FABLE_NAME}} from {{PREV_FABLE_NAME}}.
 
 ---
 
@@ -246,7 +246,7 @@ Web search and web fetch let Claude search the web and retrieve page content. Th
 ]
 ```
 
-### Dynamic Filtering ({{OPUS_NAME}} / Fable 5 / Opus 4.8 / Opus 4.7 / Opus 4.6 / Sonnet 5 / Sonnet 4.6)
+### Dynamic Filtering ({{OPUS_NAME}} / {{PREV_OPUS_NAME}} / Fable 5 / Opus 4.8 / Opus 4.7 / Opus 4.6 / {{SONNET_NAME}} / Sonnet 5 / Sonnet 4.6)
 
 The `web_search_20260209` and `web_fetch_20260209` versions support **dynamic filtering** - Claude writes and executes code to filter search results before they reach the context window, improving accuracy and token efficiency. Dynamic filtering is built into these tool versions and activates automatically; you do not need to separately declare the `code_execution` tool or pass any beta header.
 
@@ -289,7 +289,7 @@ For full documentation, use WebFetch:
 
 ## Mid-conversation tool changes (Beta)
 
-**Beta header `mid-conversation-tool-changes-2026-07-01`; {{OPUS_NAME}}, {{PREV_OPUS_NAME}}, {{PREV_FABLE_NAME}}, {{FABLE_NAME}}, {{PREV_MYTHOS_NAME}}, and {{MYTHOS_NAME}} - not {{SONNET_NAME}}; not available on Microsoft Foundry (availability: `shared/platform-availability.md`).** Normally `tools` is fixed for a conversation's lifetime - editing it changes the very front of the prompt prefix and invalidates the entire cache (see `prompt-caching.md` § Invalidation hierarchy). This feature lets you add and remove tools between turns while the cached prefix survives.
+**Beta header `mid-conversation-tool-changes-2026-07-01`; {{PREV_OPUS_NAME}}, {{OPUS_NAME}}, Claude Opus 4.8, {{PREV_FABLE_NAME}}, {{FABLE_NAME}}, {{PREV_MYTHOS_NAME}}, {{MYTHOS_NAME}}, and {{SONNET_NAME}} - not {{PREV_SONNET_NAME}}; not available on Microsoft Foundry (availability: `shared/platform-availability.md`).** Normally `tools` is fixed for a conversation's lifetime - editing it changes the very front of the prompt prefix and invalidates the entire cache (see `prompt-caching.md` § Invalidation hierarchy). This feature lets you add and remove tools between turns while the cached prefix survives.
 
 Both operations are content blocks on a `{"role": "system", ...}` message appended to `messages[]`, and both reference a tool by name via a `tool_reference`:
 
@@ -394,7 +394,7 @@ For full documentation, use WebFetch:
 
 Computer use lets Claude interact with a desktop environment (screenshots, mouse, keyboard). It is a client-side tool - your application provides the environment and executes the actions Claude requests; Anthropic processes the screenshots and action requests in real time but does not host the environment or retain the data.
 
-**Two request shapes.** The current one is the **computer toolset** - GA on the Claude API and Google Cloud, no beta header: one `tools` entry `{"type": "computer_toolset_20260801"}` with **no `name`** and no display dimensions, plus an optional `configs` map to turn member tools off (`{"zoom": {"enabled": false}}`; all 17 members, `zoom` included, are on by default). Claude's calls are `tool_use` blocks whose `name` is the member (`screenshot`, `left_click`, `type`, `zoom`, ...) carrying `"toolset_name": "computer"`, often several per turn; return one `tool_result` per call in the next `user` message, **each echoing `"toolset_name": "computer"`** (only `screenshot` / `zoom` need an image; `OK` suffices for the rest). Coordinates are in the pixel space of the full screenshots you return, also after a `zoom`, and screenshots must already fit the model's image limits. The earlier `computer_20251124` tool (beta `computer-use-2025-11-24`, a `name: "computer"` entry with `display_width_px` / `display_height_px`, actions in `input.action`) keeps working on the models and platforms that offer it - Bedrock, Claude Platform on AWS, and Foundry offer only the earlier beta versions today - and the two forms can't share a request. **{{OPUS_NEXT_NAME}} accepts only the toolset**: `computer_20251124` returns a 400 there (`shared/model-migration.md` -> Migrating to {{OPUS_NEXT_NAME}} -> Breaking change 4 has the request and agent-loop changes; test them on {{OPUS_NAME}}, which accepts both).
+**Two request shapes.** The current one is the **computer toolset** - GA on the Claude API and Google Cloud, no beta header: one `tools` entry `{"type": "computer_toolset_20260801"}` with **no `name`** and no display dimensions, plus an optional `configs` map to turn member tools off (`{"zoom": {"enabled": false}}`; all 17 members, `zoom` included, are on by default). Claude's calls are `tool_use` blocks whose `name` is the member (`screenshot`, `left_click`, `type`, `zoom`, ...) carrying `"toolset_name": "computer"`, often several per turn; return one `tool_result` per call in the next `user` message, **each echoing `"toolset_name": "computer"`** (only `screenshot` / `zoom` need an image; `OK` suffices for the rest). Coordinates are in the pixel space of the full screenshots you return, also after a `zoom`, and screenshots must already fit the model's image limits. The earlier `computer_20251124` tool (beta `computer-use-2025-11-24`, a `name: "computer"` entry with `display_width_px` / `display_height_px`, actions in `input.action`) keeps working on the models and platforms that offer it - Bedrock, Claude Platform on AWS, and Foundry offer only the earlier beta versions today - and the two forms can't share a request. **{{OPUS_NAME}} accepts only the toolset**: `computer_20251124` returns a 400 there (`shared/model-migration.md` -> Migrating to {{OPUS_NAME}} -> Breaking change 4 has the request and agent-loop changes; test them on {{PREV_OPUS_NAME}}, which accepts both). **{{SONNET_NAME}} accepts only the toolset on the Claude API and Google Cloud** (`computer_20251124` returns a 400 there; Amazon Bedrock still accepts it, and no platform accepts `computer_20250124`) - see `shared/model-migration.md` -> Migrating to {{SONNET_NAME}} -> Breaking change 4.
 
 For full documentation (member reference, batch actions, scaling, the `computer_20251124` migration steps), use WebFetch:
 
@@ -438,22 +438,23 @@ Optional fields on the tool definition:
 
 | Executor (request `model`) | Valid advisor (tool `model`) |
 |---|---|
-| `claude-haiku-4-5` / `claude-sonnet-4-6` / `{{SONNET_ID}}` / `claude-opus-4-6` / `claude-opus-4-7` | `{{OPUS_ID}}`, `{{FABLE_ID}}`, `{{MYTHOS_ID}}`, `{{PREV_FABLE_ID}}`, `{{PREV_MYTHOS_ID}}`, `claude-opus-4-8`, or `claude-opus-4-7` |
-| `claude-opus-4-8` | `{{OPUS_ID}}`, `{{FABLE_ID}}`, `{{MYTHOS_ID}}`, `{{PREV_FABLE_ID}}`, `{{PREV_MYTHOS_ID}}`, or `claude-opus-4-8` |
-| `{{OPUS_ID}}` | `{{OPUS_ID}}`, `{{FABLE_ID}}`, `{{MYTHOS_ID}}`, `{{PREV_FABLE_ID}}`, or `{{PREV_MYTHOS_ID}}` |
-| `{{PREV_FABLE_ID}}` | `{{FABLE_ID}}`, `{{MYTHOS_ID}}`, `{{PREV_FABLE_ID}}`, `{{PREV_MYTHOS_ID}}`, or `{{OPUS_ID}}` |
-| `{{PREV_MYTHOS_ID}}` | `{{MYTHOS_ID}}`, `{{FABLE_ID}}`, `{{PREV_MYTHOS_ID}}`, `{{PREV_FABLE_ID}}`, or `{{OPUS_ID}}` |
-| `{{FABLE_ID}}` / `{{MYTHOS_ID}}` | `{{MYTHOS_ID}}`, `{{FABLE_ID}}`, `{{PREV_MYTHOS_ID}}`, `{{PREV_FABLE_ID}}`, or `{{OPUS_ID}}` - and these executors reject forced `tool_choice`, so nudge the advisor call from the prompt (the `-5-1` advisors return the encrypted `advisor_redacted_result`, like {{OPUS_ID}} / {{PREV_FABLE_ID}} / {{PREV_MYTHOS_ID}}) |
+| `claude-haiku-4-5` / `claude-sonnet-4-6` | `{{MYTHOS_ID}}`, `{{FABLE_ID}}`, `{{PREV_MYTHOS_ID}}`, `{{PREV_FABLE_ID}}`, `{{OPUS_ID}}`, `{{PREV_OPUS_ID}}`, `claude-opus-4-8`, `claude-opus-4-7`, `claude-opus-4-6`, `{{SONNET_ID}}`, `{{PREV_SONNET_ID}}`, or `claude-sonnet-4-6` |
+| `{{PREV_SONNET_ID}}` | `{{MYTHOS_ID}}`, `{{FABLE_ID}}`, `{{PREV_MYTHOS_ID}}`, `{{PREV_FABLE_ID}}`, `{{OPUS_ID}}`, `{{PREV_OPUS_ID}}`, `claude-opus-4-8`, `claude-opus-4-7`, `{{SONNET_ID}}`, or `{{PREV_SONNET_ID}}` |
+| `claude-opus-4-6` | `{{MYTHOS_ID}}`, `{{FABLE_ID}}`, `{{PREV_MYTHOS_ID}}`, `{{PREV_FABLE_ID}}`, `{{OPUS_ID}}`, `{{PREV_OPUS_ID}}`, `claude-opus-4-8`, `claude-opus-4-7`, `claude-opus-4-6`, `{{SONNET_ID}}`, or `{{PREV_SONNET_ID}}` |
+| `claude-opus-4-7` / `claude-opus-4-8` | `{{MYTHOS_ID}}`, `{{FABLE_ID}}`, `{{PREV_MYTHOS_ID}}`, `{{PREV_FABLE_ID}}`, `{{OPUS_ID}}`, `{{PREV_OPUS_ID}}`, `claude-opus-4-8`, `claude-opus-4-7`, or `{{SONNET_ID}}` |
+| `{{OPUS_ID}}` / `{{PREV_OPUS_ID}}` / `{{PREV_FABLE_ID}}` / `{{PREV_MYTHOS_ID}}` | `{{MYTHOS_ID}}`, `{{FABLE_ID}}`, `{{PREV_MYTHOS_ID}}`, `{{PREV_FABLE_ID}}`, `{{OPUS_ID}}`, or `{{PREV_OPUS_ID}}` |
+| `{{FABLE_ID}}` / `{{MYTHOS_ID}}` | `{{MYTHOS_ID}}` or `{{FABLE_ID}}` - and these executors (like `{{OPUS_ID}}`) reject forced `tool_choice`, so nudge the advisor call from the prompt |
+| `{{SONNET_ID}}` | `{{MYTHOS_ID}}`, `{{FABLE_ID}}`, `{{PREV_MYTHOS_ID}}`, `{{PREV_FABLE_ID}}`, `{{OPUS_ID}}`, `{{PREV_OPUS_ID}}`, or `{{SONNET_ID}}` - Claude Opus 4.8 / 4.7 / 4.6, {{PREV_SONNET_NAME}}, and Sonnet 4.6 advisors return a 400; every accepted advisor returns the encrypted `advisor_redacted_result`, and this executor rejects forced `tool_choice`, so nudge the advisor call from the prompt |
 
 > Warning: **The advisor's payload shape differs by advisor model.** The response block is always `advisor_tool_result`; what varies is its **`content`**, a discriminated union:
 >
 > | `content` type | Fields | When |
 > |---|---|---|
 > | `advisor_result` | `text`, `stop_reason` | Advisor returns plaintext (e.g. Opus 4.8) |
-> | `advisor_redacted_result` | `encrypted_content`, `stop_reason` | Advisor returns encrypted output - {{OPUS_NAME}}, {{FABLE_NAME}}, {{MYTHOS_NAME}}, {{PREV_FABLE_NAME}}, {{PREV_MYTHOS_NAME}} |
+> | `advisor_redacted_result` | `encrypted_content`, `stop_reason` | Advisor returns encrypted output - {{OPUS_NAME}}, {{PREV_OPUS_NAME}}, {{FABLE_NAME}}, {{MYTHOS_NAME}}, {{PREV_FABLE_NAME}}, {{PREV_MYTHOS_NAME}}, {{SONNET_NAME}} |
 > | `advisor_tool_result_error` | `error_code` | Consultation failed - `max_uses_exceeded`, `prompt_too_long`, `too_many_requests`, `overloaded`, `unavailable`, `execution_time_exceeded`, or `model_not_found` |
 >
-> So switch on `advisor_tool_result.content` type, not on the block type. Code that reads `.text` unconditionally gets nothing back from an {{OPUS_NAME}} advisor, because the payload is under `encrypted_content` instead - and you cannot read it, only replay it.
+> So switch on `advisor_tool_result.content` type, not on the block type. Code that reads `.text` unconditionally gets nothing back from an {{OPUS_NAME}} or {{PREV_OPUS_NAME}} advisor, because the payload is under `encrypted_content` instead - and you cannot read it, only replay it.
 
 Call via `client.beta.messages.create(...)` with `betas=["advisor-tool-2026-03-01"]` (or the `anthropic-beta: advisor-tool-2026-03-01` header). In multi-turn conversations, append the full `response.content` - including any `advisor_tool_result` blocks - back to `messages` on the next turn. If you remove the advisor tool from `tools` on a later turn while the history still contains `advisor_tool_result` blocks, the API returns a 400.
 
@@ -536,7 +537,7 @@ Two features are available:
 - **JSON outputs** (`output_config.format`): Control Claude's response format
 - **Strict tool use** (`strict: true`): Guarantee valid tool parameter schemas
 
-**Supported models:** {{PREV_FABLE_NAME}}, {{PREV_MYTHOS_NAME}}, {{FABLE_NAME}}, {{MYTHOS_NAME}}, {{OPUS_NAME}}, {{PREV_OPUS_NAME}}, {{SONNET_NAME}}, and {{HAIKU_NAME}}. Legacy models (Claude Opus 4.5, Claude Opus 4.1) also support structured outputs.
+**Supported models:** {{PREV_FABLE_NAME}}, {{PREV_MYTHOS_NAME}}, {{FABLE_NAME}}, {{MYTHOS_NAME}}, {{OPUS_NAME}}, {{PREV_OPUS_NAME}}, Claude Opus 4.8, {{SONNET_NAME}}, {{PREV_SONNET_NAME}}, and {{HAIKU_NAME}}. Legacy models (Claude Opus 4.5, Claude Opus 4.1) also support structured outputs.
 
 > **Recommended:** Use `client.messages.parse()` which automatically validates responses against your schema. When using `messages.create()` directly, use `output_config: {format: {...}}`. The `output_format` convenience parameter is also accepted by some SDK methods (e.g., `.parse()`), but `output_config.format` is the canonical API-level parameter.
 

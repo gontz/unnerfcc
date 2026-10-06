@@ -3,7 +3,7 @@ name: 'Skill: Claude Test onboarding'
 description: >-
   Instructions for guiding the user through machine verification and starter
   test suite creation in Claude Test.
-ccVersion: 2.1.277
+ccVersion: 2.1.292
 -->
 # Onboarding — the machine first, then the starter suite, with the person
 
@@ -108,7 +108,7 @@ blocks; say 'allow maps and stripe' to include them (runs would then call Google
 add exactly those hosts under `reachableHosts:` in `.claude-testrc` (an edit they approve; create the file with `baseUrl:` too when
 there is none), run `status` and follow `needsConsent` for those hosts (SKILL.md), add the journeys to the outline, and carry on — the fence reads the list when the run starts. Without that word the
 outline is only what can run as things are, so what they ok is what they get. Then one line, said once in the conversation and only here: "After your ok, Claude Code
-asks before it drafts and before it runs — a plain Yes is right each time, not 'don't ask again'." — on the line directly
+asks before it drafts, before it opens the live page when one is to open, and before it runs — a plain Yes is right each time, not 'don't ask again'." — on the line directly
 above the closing sentence, with no blank line between them. Close with one sentence:
 "Prune, reorder or add ('drop 6, add checkout'), or say ok — on ok I draft and run these."
 The whole message fits in about fifteen lines; no opening sentence on what the app is — they saw your guesses already. If the look reported a sign-in wall or
@@ -121,6 +121,23 @@ outline, post only the changed lines ("the look found a sign-in wall on /orders 
 with at most three words ("Outline stands.") — never a paragraph saying nothing changed.
 
 A look whose report has "Stopped early:" on the line under its header is said so first, in one line, with one of the two fixed reasons and nothing else from that line: "The first look stopped early: the first page was still empty after 20 s." or "The first look stopped early: three minutes had passed."
+When the line under that one starts "Empty first page:", add ONE more line from its counts, in these words and nothing the page said: "It saw an empty page: <e> console errors; <f> requests did not load,
+<o> of them to other hosts." (a count the report left out, you leave out too). The rest of that line is for you, not for the person. Look first at the requests to other hosts that did not load: the
+test browser refuses the hosts the person has not allowed, their names are on the report's "Fence:" line, and "Journeys that need an outside host" above says how the person allows them. Requests
+that did not load and went to the app's own host (<f> is more than <o>) point at the app's own server: its bundle, a route, a build that failed. All three counts 0: Read `look-1.png` in the run
+folder first, when the report lists it, because a page that draws itself into a canvas gives an empty snapshot while it renders well; when the picture shows the app, say that the page renders but
+gives the look no text to read. "page is not cross-origin isolated" is how most pages are, and no fault by itself. It
+matters only when the app needs SharedArrayBuffer: a hit in one search of the app's code for that word says yes, and so does a WebAssembly-threads, SQLite or file-system worker you have already seen
+there. Only then bring it up, as one likely cause and in plain words: "this app needs SharedArrayBuffer, and its dev server does not send the two headers that allow it" (`Cross-Origin-Opener-Policy: same-origin` and
+`Cross-Origin-Embedder-Policy: require-corp`). Name any cause only as a guess ("one likely cause is …"), with the one thing that would confirm it, before you propose a change to how the server is
+started.
+
+**Looking again.** When a look has to be repeated (it came back blocked or empty, and what stopped it is settled: an address or a host allowed, the server started another way), do F1's steps 1 and 2
+again: `new-run` FIRST, then `look <that new folder>`. Every look gets a run folder of its own: the runner's save step takes drafts only from the newest run folder, refuses a folder that holds anything
+it does not expect there, and says so only when the run starts, long after the outline; a new folder with one look in it is what every first run starts from. What this `new-run` printed replaces all that the earlier one printed: the author (F4) and the runner get
+the new `absolute`, and the `saveKey`, the `livePage` and the call that opens it are the new ones; the earlier folder is left as it is. Do not look again while the author is running (F4): its drafts
+go into the earlier folder. Wait for its report, then `new-run`, the look, and the author once more with the new folder. For you to know, not to say to the person: in a later turn
+Claude Code asks them to approve both steps, making the run folder and the look, and a plain Yes is right each time.
 
 ### F4. On their ok: the author drafts, the clean drafts are filed, the run starts — no second question
 
@@ -148,7 +165,7 @@ draft yourself before starting the runner. If they ask to SEE a draft or a spec 
 
 ### F5. The briefing and the go — SKILL.md §3, steps 2–6
 
-The run folder exists already (F1). Setup and sign-in steps, the briefing (for a first run: about a minute per spec; SKILL.md §3
+The run folder exists already (F1; the newest one when you looked again). Setup and sign-in steps, the briefing (for a first run: about a minute per spec; SKILL.md §3
 step 4's three sentences, which say "Started: saving the <k> new specs, then a run of them against …"; then the live-page block and the one offer, and that is the whole message), the runner
 started with `run <absolute run folder>`, the one offer, then quiet. When the table arrives, SKILL.md §5 — and for a first run
 end with the commit advice as a statement (the spec files, `filed`, `<projectDir>/.claude-test/.gitignore`, `.claude-testrc` —
@@ -165,8 +182,8 @@ to fix it. Never drop a failing spec or make it pass by weakening what it checks
 **Journeys first.** At least three of the specs must be journeys: two or more user actions through
 the app's main create / open / edit path (navigating by clicking counts as an action), ending on a
 screen whose content proves the actions took effect — "opened the seeded order, and its detail page
-lists the three line items"; "created a page named 'Claude Test demo page', and the lobby now lists
-it" — not "the rename dialog opens with a text box". A spec that only confirms that a page, dialog,
+lists the three line items"; "added a recipe named 'Claude Test demo recipe', and the recipe list
+now shows it" — not "the Add a recipe form opens with an empty name field". A spec that only confirms that a page, dialog,
 menu or label renders, asserting no seeded value and no outcome of an action, is periphery: useful
 as number five, wrong as number one, and at most two of those, at the end of your numbered list
 (error pages and empty states count as periphery; a single search, filter or list check that
@@ -174,7 +191,7 @@ asserts seeded values is fine in between). Spec 1 is the product's core flow its
 creates data it is still tagged and still RUNS last: the numbered list is by importance, the run
 order puts creating specs at the end. If you cannot find three journeys, say under "Left out"
 which you looked for and which check below each one failed. Where a journey types free text, use
-an unmistakable sentinel value ("zzqx-test-note", "Claude Test demo page") so the end screen can be
+an unmistakable sentinel value ("zzqx-test-note", "Claude Test demo recipe") so the end screen can be
 checked for exactly that string.
 
 Alongside the journeys, a starter set also covers: the landing page shows its heading and main
@@ -194,21 +211,21 @@ that exact form ("Open /#/cart") and cite the router file in the from-comment; a
 the landing page and the spec tests nothing.
 
 **Creating data: one spec must, within rules.** When the app's central path creates something (it
-usually does: create the page, post the order, add the card), ONE spec must take that path — not
-optional — and a second may. If the app names new records itself ("Untitled …"), the journey is:
-create it → rename it to the fixed "Claude Test demo …" name through the app's own rename or title
-control (renaming what the spec just created is allowed; a native prompt() asking for the name is
-fine — the run answers browser dialogs) → then return to the list / lobby and END there: "Passes
-when" names the row in the list (that proves it was saved), not only the header of the page you
-were on.
-Only if no rename control or name field exists anywhere do you leave the create out, and then say
+usually does: add the recipe, post the order, save the note), ONE spec must take that path — not
+optional — and a second may. If the app gives a new record a name of its own ("Recipe 14"), the
+journey is: create it → change that to the fixed "Claude Test demo …" name in the app's own name
+field or with its rename action (renaming what the spec just created is allowed; an app that asks
+for the name in one of the browser's own dialogs is fine — the run answers those) → then go back to
+the list of records and END there: "Passes when" names the entry in the list (that proves it was
+saved), not only the heading of the screen you were on.
+Only if no rename action or name field exists anywhere do you leave the create out, and then say
 under "Left out" which files you searched for one. Tag them `tags: [creates-data]` in the front matter; give
 every record they make the fixed prefix "Claude Test demo" so later runs find and reuse it; make
-the first step conditional ("If no page named 'Claude Test demo page' exists, create one from …;
+the first step conditional ("If no recipe named 'Claude Test demo recipe' exists, add one from …;
 otherwise open it"); prefer the creation path an ordinary user has; edit, rename or move only
 records the spec itself created (the "Claude Test demo …" ones) — never a seeded record another
-spec reads; never delete; and leave out toggles and dismissals that stay with the account (star,
-"Got it", "don't show again" — not repeat-safe). On a local dev database such records are harmless
+spec reads; never delete; and leave out toggles and dismissals that stay with the account (a
+favourite mark, a welcome tip's "Dismiss", "never ask again" — not repeat-safe). On a local dev database such records are harmless
 evidence, and these specs run with the rest, last; the report marks them "creates data" so
 anyone who later runs them against a shared site can hold them back.
 Format example: [spec-format.md](spec-format.md), "Specs that need data".

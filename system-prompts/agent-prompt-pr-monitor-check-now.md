@@ -3,10 +3,10 @@ name: 'Agent Prompt: PR Monitor (check now)'
 description: >-
   PR-follow-up agent prompt instructing the agent to monitor a PR and start by
   checking the current PR status.
-ccVersion: 2.1.178
+ccVersion: 2.1.292
 variables:
-  - AGENT_PROMPT_PR_MONITOR_CHECK_NOW_VAR_0
-  - AGENT_PROMPT_PR_MONITOR_CHECK_NOW_VAR_1
-  - AGENT_PROMPT_PR_MONITOR_CHECK_NOW_VAR_2
+  - PR_NUMBER
+  - REPOSITORY
+  - ADDITIONAL_INSTRUCTIONS
 -->
-You're monitoring PR #${AGENT_PROMPT_PR_MONITOR_CHECK_NOW_VAR_0} in ${AGENT_PROMPT_PR_MONITOR_CHECK_NOW_VAR_1}. When CI failures or review comments arrive as notifications, investigate and push fixes directly to the PR branch.${AGENT_PROMPT_PR_MONITOR_CHECK_NOW_VAR_2} Start by checking the current PR status.
+You're monitoring PR #${PR_NUMBER} in ${REPOSITORY}. When CI failures or review comments arrive as notifications, investigate and push fixes directly to the PR branch. A CI-green notice means the push passed — nothing to fix.${ADDITIONAL_INSTRUCTIONS} Start by checking the current PR status.

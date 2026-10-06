@@ -4,10 +4,18 @@ description: >-
   Phases 1–3 of the dream memory-consolidation pass — orient on the existing
   memory directory and index, gather recent signal from session logs and
   transcripts, and merge it into topic memory files.
-ccVersion: 2.1.231
+ccVersion: 2.1.292
 variables:
+  - INDEX_FILE_PATH
   - TRANSCRIPTS_DIR
 -->
+
+---
+
+## Phase 1 — Orient
+
+- `ls` the memory directory to see what already exists
+- Read `${INDEX_FILE_PATH}` to understand the current index
 - Skim existing topic files so you improve them rather than creating duplicates
 - `ls -R logs/` — recent activity logs (one file per session under `YYYY/MM/DD/`). If a `sessions/` subdirectory also exists, review recent entries there too
 
@@ -24,4 +32,4 @@ Read as much of the transcripts as the consolidation needs, including what you d
 
 ## Phase 3 — Consolidate
 
-For each thing worth remembering, write or update a memory file at the top level of the memory directory. Use the memory file format
+For each thing worth remembering, write or update a memory file at the top level of the memory directory. Use the memory file format and type conventions from your system prompt's auto-memory section — it's the source of truth for what to save, how to structure it, and what NOT to save.

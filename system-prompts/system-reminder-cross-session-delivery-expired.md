@@ -2,12 +2,12 @@
 name: 'System Reminder: Cross-session delivery expired'
 description: >-
   Notifies the sending session that its cross-session message was not approved
-  before expiry, was never delivered, and that it should continue rather than
-  wait for a reply.
-ccVersion: 2.1.231
+  before expiry and was not delivered.
+ccVersion: 2.1.292
 variables:
-  - MESSAGE_REFERENCE
-  - RECIPIENT_REFERENCE
-  - RECIPIENT_SESSION_DESCRIPTION
+  - MESSAGE_REF
+  - RECIPIENT_REF
+  - RECIPIENT_SESSION_DESC
+  - MESSAGE_NAME
 -->
-[Cross-session delivery notice] ${MESSAGE_REFERENCE} ${RECIPIENT_REFERENCE} not approved before expiry${RECIPIENT_SESSION_DESCRIPTION}. Not delivered to that session's Claude. Do not wait for a reply; continue, or choose another approach.
+[Cross-session delivery notice] ${MESSAGE_REF} ${RECIPIENT_REF} not approved before expiry${RECIPIENT_SESSION_DESC}. Not delivered to that session's Claude, and nothing is waiting there. Do not wait for a reply, and do not resend unprompted: while the two sessions' permission modes differ a resend is only held again. Tell your user what was not delivered and why; send ${MESSAGE_NAME} again, edited if that helps, when they ask.

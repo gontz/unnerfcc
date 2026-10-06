@@ -1,13 +1,13 @@
 <!--
 name: 'Data: Platform Availability'
 description: Provider-platform feature-availability table the model consults.
-ccVersion: 2.1.280
+ccVersion: 2.1.292
 -->
 # Platform Availability
 
 Which features work on which provider platform. **This table is the single source of truth in this skill** - per-feature sections elsewhere point here instead of restating availability. When writing code for a third-party platform (Bedrock, Vertex, Foundry) or Claude Platform on AWS, check this table first; a feature not supported there means use the first-party Claude API surface or a different approach.
 
-Columns: **1P** = first-party Claude API, **P-AWS** = Claude Platform on AWS (Anthropic-operated, same-day parity), **Bedrock** = Amazon Bedrock, **Vertex** = Google Cloud Vertex AI, **Foundry** = Microsoft Foundry. Yes = GA, beta = beta, No = not supported.
+Columns: **1P** = first-party Claude API, **P-AWS** = Claude Platform on AWS (Anthropic-operated, same-day parity), **Bedrock** = Amazon Bedrock, **Vertex** = Google Cloud Vertex AI, **Foundry** = Microsoft Foundry. Yes = GA, beta = beta, No = not supported, unconfirmed = not verified either way when this was written.
 
 | Feature | 1P | P-AWS | Bedrock | Vertex | Foundry | Notes |
 |---|---|---|---|---|---|---|
@@ -34,7 +34,7 @@ Columns: **1P** = first-party Claude API, **P-AWS** = Claude Platform on AWS (An
 | &nbsp;&nbsp;Advisor tool | beta | beta | No | No | No | |
 | **Client-implemented tools** | | | | | | |
 | &nbsp;&nbsp;Bash, text editor, memory | Yes | Yes | Yes | Yes | Yes | |
-| &nbsp;&nbsp;Computer use | beta | beta | beta | beta | beta | `computer_20251124` and older versions: beta on all five platforms. {{OPUS_NEXT_NAME}} accepts only `computer_toolset_20260801`: GA on the Claude API and Google Cloud with no beta header, not offered on the other platforms - toolset availability is not final, confirm at launch (`shared/model-migration.md` -> Migrating to {{OPUS_NEXT_NAME}}, breaking change 4) |
+| &nbsp;&nbsp;Computer use | beta | beta | beta | beta | beta | `computer_20251124` and older versions: beta on all five platforms. {{OPUS_NAME}} accepts only `computer_toolset_20260801` (GA, no beta header) on the Claude API and Google Cloud, and still accepts `computer_20251124` on Amazon Bedrock (`shared/model-migration.md` -> Migrating to {{OPUS_NAME}}, breaking change 4). {{SONNET_NAME}} accepts only the toolset on the Claude API and Google Cloud, but still accepts `computer_20251124` on Amazon Bedrock, and rejects `computer_20250124` everywhere (`shared/model-migration.md` -> Migrating to {{SONNET_NAME}}, breaking change 4) |
 | **Agentic / orchestration** | | | | | | |
 | &nbsp;&nbsp;Agent Skills (Messages API) | Yes | Yes | No | No | beta | Foundry: Hosted on Anthropic deployments only - Hosted on Azure returns a 400 |
 | &nbsp;&nbsp;Programmatic tool calling | Yes | Yes | No | No | Yes | Foundry: Hosted on Anthropic deployments only - Hosted on Azure returns a 400 |
@@ -46,14 +46,14 @@ Columns: **1P** = first-party Claude API, **P-AWS** = Claude Platform on AWS (An
 | &nbsp;&nbsp;Files API | Yes | Yes | No | No | beta | Foundry: Hosted on Anthropic deployments only - Hosted on Azure returns a 400 |
 | &nbsp;&nbsp;Models API | Yes | Yes | No | No | No | |
 | **Other** | | | | | | |
-| &nbsp;&nbsp;Mid-conversation system messages | Yes | Yes | Yes | Yes | No | {{OPUS_NAME}}, {{OPUS_NEXT_NAME}}, {{PREV_OPUS_NAME}}, {{PREV_FABLE_NAME}}, {{FABLE_NAME}}, {{PREV_MYTHOS_NAME}}, {{MYTHOS_NAME}}; not {{SONNET_NAME}}. Bedrock: InvokeModel passthrough, not ARN-versioned models |
+| &nbsp;&nbsp;Mid-conversation system messages | Yes | Yes | Yes | Yes | No | {{PREV_OPUS_NAME}}, {{OPUS_NAME}}, Claude Opus 4.8, {{PREV_FABLE_NAME}}, {{FABLE_NAME}}, {{PREV_MYTHOS_NAME}}, {{MYTHOS_NAME}}, {{SONNET_NAME}}; not {{PREV_SONNET_NAME}}. Bedrock: InvokeModel passthrough, not ARN-versioned models |
 | &nbsp;&nbsp;Mid-conversation tool changes | beta | beta | beta | beta | No | Same models as mid-conversation system messages; beta `mid-conversation-tool-changes-2026-07-01` |
 | &nbsp;&nbsp;Turn-scoped (`clear_at`) system messages | beta | beta | beta | beta | No | Same models as mid-conversation system messages; beta `mid-conversation-system-clear-at-2026-08-21` (on Bedrock/Vertex pass the value as a beta) |
-| &nbsp;&nbsp;Per-message `effort` (system message `output_config`) | beta | No | No | No | No | {{FABLE_NAME}}, {{MYTHOS_NAME}}, {{OPUS_NAME}}, {{OPUS_NEXT_NAME}}; beta `mid-conversation-output-config-2026-07-01`; Claude API at launch (Bedrock/Vertex/Foundry unconfirmed; {{OPUS_NAME}} excluded on Bedrock) |
-| &nbsp;&nbsp;`thinking.display: "updates"` | beta | beta | beta | beta | beta | {{FABLE_NAME}}, {{MYTHOS_NAME}}, {{PREV_FABLE_NAME}}, {{OPUS_NEXT_NAME}}; beta `thinking-display-updates-2026-08-18` (pass the beta value per platform); without it `"updates"` is rejected as an unknown `display` value |
-| &nbsp;&nbsp;Thinking block-binding controls | beta | beta | per model | per model | No | `thinking.block_binding` + `input_transformations`; beta `thinking-binding-controls-2026-08-01` (on Bedrock via the `anthropic_beta` body field); the controls beta arrives per model on Bedrock/Vertex - until then the header is rejected; the history-editing enforcement itself follows the account-age rule in `shared/model-migration.md` -> Migrating to {{FABLE_NAME}} from {{PREV_FABLE_NAME}} |
+| &nbsp;&nbsp;Per-message `effort` (system message `output_config`) | beta | unconfirmed | unconfirmed | beta | unconfirmed | {{FABLE_NAME}}, {{MYTHOS_NAME}}, {{PREV_OPUS_NAME}}, {{OPUS_NAME}}, {{SONNET_NAME}} (thinking on only - a 400 with `between_tools`); beta `mid-conversation-output-config-2026-07-01`; on the Claude API and Google Cloud, open to any organization that sends the header (Claude Platform on AWS/Bedrock/Foundry unconfirmed; {{PREV_OPUS_NAME}} excluded on Bedrock) |
+| &nbsp;&nbsp;`thinking.display: "updates"` | beta | beta | beta | beta | beta | {{FABLE_NAME}}, {{MYTHOS_NAME}}, {{PREV_FABLE_NAME}}, {{OPUS_NAME}}, {{SONNET_NAME}} (with adaptive thinking); beta `thinking-display-updates-2026-08-18` (pass the beta value per platform); without it `"updates"` is rejected as an unknown `display` value |
+| &nbsp;&nbsp;Thinking block-binding controls | beta | beta | beta | beta | unconfirmed | `thinking.block_binding` + `input_transformations`; beta `thinking-binding-controls-2026-08-01` (the same beta name on the Claude API, Claude Platform on AWS, Bedrock, and Vertex - Bedrock: the `anthropic_beta` body field, Vertex: the `anthropic-beta` HTTP header); Foundry unconfirmed; wherever the header is rejected, use strip-and-retry; the history-editing enforcement itself follows the account-age rule in `shared/model-migration.md` -> Migrating to {{FABLE_NAME}} from {{PREV_FABLE_NAME}} |
 | &nbsp;&nbsp;Server-side `fallbacks` | beta | beta | No | No | No | `"default"` -> beta `server-side-fallback-2026-07-01`; array form -> beta `server-side-fallback-2026-06-01` |
-| &nbsp;&nbsp;Fast mode | beta | No | No | No | No | Research preview, beta `fast-mode-2026-02-01`, first-party API only ({{OPUS_NAME}} / Opus 4.8 at $10 / $50; {{OPUS_NEXT_NAME}} at $8 / $40 - its fast-mode docs flip after the model launch, confirm before quoting) |
+| &nbsp;&nbsp;Fast mode | beta | No | No | No | No | Research preview, beta `fast-mode-2026-02-01`, first-party API only ({{PREV_OPUS_NAME}} / Opus 4.8 at $10 / $50; {{OPUS_NAME}} at $8 / $40) |
 | &nbsp;&nbsp;Cache diagnostics | beta | No | No | No | No | First-party API only |
 | &nbsp;&nbsp;Task budgets | beta | beta | No | No | No | Beta header `task-budgets-2026-03-13`; 3P availability not documented - assume unsupported |
 
@@ -72,10 +72,9 @@ older vendored snapshot):
 - Hosted on Azure limits (the "Hosted on Anthropic deployments only" notes and
   the basic web search/fetch versions): build-with-claude/claude-in-microsoft-foundry,
   "Additional features not supported when hosted on Azure".
-- Computer use row note (the computer_toolset_20260801 split): the launch docs
-  cited by model-migration.md § Migrating to {{OPUS_NEXT_NAME}}, breaking
-  change 4, whose GROUNDING block names the source pages; availability marked
-  not final there, hence the confirm-at-launch hedge in the note.
+- Computer use row note: live page agents-and-tools/tool-use/computer-use-tool,
+  "Compatibility" (not part of the 2026-09-19 re-check), as cited by
+  model-migration.md § Migrating to {{OPUS_NAME}}, breaking change 4.
 - Mid-conversation tool changes row: build-with-claude/mid-conversation-system-messages
   (same models as system messages; Claude API, Bedrock, Google Cloud). P-AWS is
   beta by parity: build-with-claude/claude-platform-on-aws, "Feature support"

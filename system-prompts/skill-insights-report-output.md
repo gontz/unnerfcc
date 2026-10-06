@@ -3,7 +3,7 @@ name: 'Skill: /insights report output'
 description: >-
   Formats and displays the insights usage report results after the user runs the
   /insights slash command
-ccVersion: 2.1.251
+ccVersion: 2.1.292
 variables:
   - INSIGHTS_DATA
   - REPORT_URL
@@ -28,5 +28,3 @@ Respond with exactly the following, and nothing else. Do not add, omit, or rewor
 
 Your shareable insights report is ready:
 ${REPORT_URL}
-
-Want to dig into any section or try one of the suggestions?

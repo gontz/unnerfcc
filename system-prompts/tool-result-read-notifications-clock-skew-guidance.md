@@ -1,0 +1,10 @@
+<!--
+name: 'Tool Result: Notifications clock skew guidance'
+description: >-
+  Explains how to interpret timestamps and wait durations in notification
+  headers.
+ccVersion: 2.1.292
+variables:
+  - MINUTES_THRESHOLD
+-->
+ by this machine's clock. A time that a body tells you to treat as current is when that notification fired, which is earlier than now by however long it waited. In each header, "queued at" is when the server queued the notification, by the server's clock, and "reached this session" is how long before this read it arrived here. Where its queued-at time is more than ${MINUTES_THRESHOLD} minutes before its arrival here, the header also gives the whole wait, which compares the two clocks and can be off by their difference. Where the header gives no whole wait, count the notification as having waited only the time since it reached this session: a gap of up to ${MINUTES_THRESHOLD} minutes between its queued-at time and its arrival here may be just the two clocks.

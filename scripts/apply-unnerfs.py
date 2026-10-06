@@ -190,7 +190,7 @@ RULES: dict[str, list[Rule]] = {
     # which is *good* and we leave alone — only re-apply the final-summary
     # un-nerf that was wiped.)
     # -------------------------------------------------------------------------
-    "agent-prompt-dream-memory-consolidation-prune-index.md": [
+    "agent-prompt-dream-memory-consolidation-phase-4-prune-and-index.md": [
         Rule(
             stock="Return a brief summary of what you consolidated, updated, or pruned. If nothing changed (memories are already tight), say so.",
             unnerf="Summarize thoroughly what you consolidated, updated, or pruned: which files changed, what signal drove each change, and any patterns you noticed. If nothing changed, say so and describe what you reviewed.",
@@ -278,37 +278,6 @@ RULES: dict[str, list[Rule]] = {
             stock="- Be concise — as short as the answer allows, no shorter. Plain text, no preamble, no meta-commentary.",
             unnerf="- Report thoroughly — cover what you did, what you found, the reasoning behind non-obvious decisions, any issues or edge cases you encountered, and any relevant observations the parent needs to continue the work. The parent relies on your report; do not withhold useful detail.",
             description="worker fork report: thorough over terse",
-        ),
-    ],
-
-    # -------------------------------------------------------------------------
-    # skill-dynamic-pacing-loop-confirmation-and-continuation.md — thorough confirmation
-    # -------------------------------------------------------------------------
-    "skill-dynamic-pacing-loop-confirmation-and-continuation.md": [
-        Rule(
-            # v2.1.251 renamed the slot CONFIRMATION_MESSAGE -> CONFIRMATION_TEXT;
-            # v2.1.270 renamed it again to CONFIRMATION_TOPIC and split the prompt,
-            # moving these steps into skill-dynamic-pacing-loop-confirmation-and-
-            # continuation.md. Both verified against the file's own frontmatter
-            # variables: list. Text is otherwise byte-identical, so this stays a
-            # retarget plus slot rename, not a rule rewrite (UNNERF-GUIDE Part 6).
-            stock="3. **Briefly confirm**: ${CONFIRMATION_TOPIC}, whether a ${MONITOR_TOOL_NAME} is the primary wake signal, and what fallback delay you're about to pick. Write this as text *before* calling ${SCHEDULE_WAKEUP_TOOL_NAME} — the turn ends as soon as that tool returns.",
-            unnerf="3. **Confirm thoroughly**: ${CONFIRMATION_TOPIC}, whether a ${MONITOR_TOOL_NAME} is the primary wake signal, the fallback delay you're about to pick and the reasoning that drove the choice, and any observations from this turn that should inform future iterations. Write this as text *before* calling ${SCHEDULE_WAKEUP_TOOL_NAME} — the turn ends as soon as that tool returns.",
-            description="dynamic pacing confirm: thorough with reasoning",
-        ),
-    ],
-
-    # -------------------------------------------------------------------------
-    # skill-loop-self-pacing-steps-3-to-6.md — thorough self-pacing confirmation
-    # -------------------------------------------------------------------------
-    "skill-loop-self-pacing-steps-3-to-6.md": [
-        Rule(
-            # v2.1.270 split the self-pacing skill: steps 3-6 now extract as their
-            # own fragment, so the rule moves with the passage. Text and slots are
-            # unchanged (UNNERF-GUIDE Part 6, "the extractor re-fragmented a prompt").
-            stock="3. **Briefly confirm**: that you're self-pacing, whether a ${MONITOR_TOOL_NAME} is the primary wake signal, that you ran the task now, and what fallback delay you're about to pick. Write this as text *before* calling ${SCHEDULE_WAKEUP_TOOL_NAME} — the turn ends as soon as that tool returns.",
-            unnerf="3. **Confirm thoroughly**: that you're self-pacing, whether a ${MONITOR_TOOL_NAME} is the primary wake signal (and why you chose that approach), that you ran the task now, what fallback delay you're about to pick, and the reasoning behind the pacing choice so the user can evaluate whether it's right. Write this as text *before* calling ${SCHEDULE_WAKEUP_TOOL_NAME} — the turn ends as soon as that tool returns.",
-            description="self-pacing confirm: thorough with pacing reasoning",
         ),
     ],
 
@@ -713,7 +682,11 @@ RULES: dict[str, list[Rule]] = {
     # -------------------------------------------------------------------------
     "tool-description-bash-sandbox-explain.md": [
         Rule(
-            stock="Briefly explain what sandbox restriction likely caused the failure. Be sure to mention that the user can use the `/sandbox` command to manage restrictions.",
+            # v2.1.292 split this prompt at an interpolation: everything after
+            # "`/sandbox` command to" now lives in a sibling fragment, so the old
+            # whole-sentence stock no longer matches. Anchored on the lead clause,
+            # which is where the "Briefly" cap actually sits.
+            stock="Briefly explain what sandbox restriction likely caused the failure.",
             unnerf="Explain thoroughly what sandbox restriction likely caused the failure — which restriction, what it does, why it triggered here, and how it relates to what the command was trying to do. Mention that the user can use the `/sandbox` command to manage restrictions, and describe what kind of change would resolve the situation.",
             description="sandbox explain: thorough restriction walkthrough",
         ),
@@ -741,19 +714,13 @@ RULES: dict[str, list[Rule]] = {
             description='code-review medium frontmatter: drop candidate/finding caps',
         ),
         Rule(
-            stock='`medium effort → 3+5 angles × 6 candidates → 1-vote verify → ≤8 findings`',
-            unnerf='`medium effort → 3+5 angles → 1-vote verify → all qualifying findings`',
-            description='code-review medium tier line: all qualifying findings',
-        ),
-        Rule(
-            stock='## Phase 1 — Find candidates (3 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle, up to 6 each)',
-            unnerf='## Phase 1 — Find candidates (3 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle)',
-            description='code-review medium phase heading: drop per-angle cap',
-        ),
-        Rule(
-            stock='surfaces **up to 6 candidate findings** with `file`, `line`, a one-line\n`summary`, and a concrete `failure_scenario`.',
-            unnerf='surfaces every candidate finding with `file`, `line`, a one-line\n`summary`, and a concrete `failure_scenario`.',
-            description='code-review medium finders: surface every candidate',
+            # v2.1.292 bucket-analysis (bucket-analyze.mjs, 2026-10-06): AI-proposed,
+            # mechanically validated (stock occurs exactly once, no new ${VAR}
+            # introduced, no overlap with an existing rule, --dry-run confirmed).
+            # Full keep/lift review: data/bucket-analysis-2.1.292.json
+            stock="## Phase 1 — Find candidates (3 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle, up to 6 each)\n\nRun **8 independent finder angles** via the ${AGENT_TOOL_NAME} tool. Each\nsurfaces **up to 6 candidate findings** with `file`, `line`, a one-line\n`summary`, and a concrete `failure_scenario`. ${FINDER_INSTRUCTIONS}",
+            unnerf="## Phase 1 — Find candidates (3 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle)\n\nRun **8 independent finder angles** via the ${AGENT_TOOL_NAME} tool. Each\nsurfaces all candidate findings with `file`, `line`, a\n`summary`, and a concrete `failure_scenario`. ${FINDER_INSTRUCTIONS}",
+            description="code-review medium: drop 6-candidate caps and one-line summary limit",
         ),
     ],
     "skill-code-review-effort-high.md": [
@@ -763,19 +730,13 @@ RULES: dict[str, list[Rule]] = {
             description='code-review high frontmatter: drop candidate/finding caps',
         ),
         Rule(
-            stock='`high effort → 3+5 angles × 6 candidates → 1-vote verify (recall-biased) → ≤10 findings`',
-            unnerf='`high effort → 3+5 angles → 1-vote verify (recall-biased) → all qualifying findings`',
-            description='code-review high tier line: all qualifying findings',
-        ),
-        Rule(
-            stock='## Phase 1 — Find candidates (3 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle, up to 6 each)',
-            unnerf='## Phase 1 — Find candidates (3 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle)',
-            description='code-review high phase heading: drop per-angle cap',
-        ),
-        Rule(
-            stock='surfaces **up to 6 candidate findings** with `file`, `line`, a one-line\n`summary`, and a concrete `failure_scenario`.',
-            unnerf='surfaces every candidate finding with `file`, `line`, a one-line\n`summary`, and a concrete `failure_scenario`.',
-            description='code-review high finders: surface every candidate',
+            # v2.1.292 bucket-analysis (bucket-analyze.mjs, 2026-10-06): AI-proposed,
+            # mechanically validated (stock occurs exactly once, no new ${VAR}
+            # introduced, no overlap with an existing rule, --dry-run confirmed).
+            # Full keep/lift review: data/bucket-analysis-2.1.292.json
+            stock="## Phase 1 — Find candidates (3 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle, up to 6 each)\n\nRun **8 independent finder angles** via the ${AGENT_TOOL_NAME} tool. Each\nsurfaces **up to 6 candidate findings** with `file`, `line`, a one-line\n`summary`, and a concrete `failure_scenario`.",
+            unnerf="## Phase 1 — Find candidates (3 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle, uncapped)\n\nRun **8 independent finder angles** via the ${AGENT_TOOL_NAME} tool. Each\nsurfaces all candidate findings with `file`, `line`, a one-line\n`summary`, and a concrete `failure_scenario`.",
+            description="code-review high Phase 1: drop 6-candidate cap per finder angle",
         ),
     ],
     "skill-code-review-effort-max.md": [
@@ -793,85 +754,6 @@ RULES: dict[str, list[Rule]] = {
             stock='surfaces **up to 8 candidate findings**. Do NOT let one angle\'s conclusions\nsuppress another\'s — if two angles flag the same line for different reasons,\nrecord both.',
             unnerf='surfaces every candidate finding. Do NOT let one angle\'s conclusions\nsuppress another\'s — if two angles flag the same line for different reasons,\nrecord both.',
             description='code-review max finders: surface every candidate',
-        ),
-    ],
-
-    # The tier line moved to its own fragment at v2.1.219 (the header run split
-    # off from the body of skill-code-review-effort-max.md).
-    "skill-code-review-effort-max-header.md": [
-        Rule(
-            stock='`${EFFORT_LEVEL} effort → 5+5 angles × 8 candidates → 1-vote verify → sweep → ≤15 findings`',
-            unnerf='`${EFFORT_LEVEL} effort → 5+5 angles → 1-vote verify → sweep → all qualifying findings`',
-            description='code-review max tier line: all qualifying findings',
-        ),
-    ],
-
-    "skill-code-review-effort-low.md": [
-        Rule(
-            stock='Effort-tier prompt for low code review — single diff pass, no verify, up to 4\n  findings',
-            unnerf='Effort-tier prompt for low code review — single diff pass, no verify, all\n  qualifying findings',
-            description='code-review low frontmatter: match the already-lifted body (drop "up to 4")',
-        ),
-        Rule(
-            stock='low effort → 1 diff pass → no verify → ≤4 findings',
-            unnerf='low effort → 1 diff pass → no verify → all qualifying findings',
-            description='code-review low-effort tier line: drop the ≤4 cap (matches the findings-output flip)',
-        ),
-    ],
-
-    # v2.1.219 split the low-effort tier prompt into three separate sites: the
-    # tier header + turn-by-turn body (above), the plain-text findings-output
-    # block (here), and the ReportFindings-tool branch (below). Each is its own
-    # spliceable node now, so each needs its own key.
-    "skill-code-review-low-effort-output-cap.md": [
-        Rule(
-            stock='Output at most **4 findings**, most-severe first, one line each',
-            unnerf='Output every qualifying finding, most-severe first, one line each (if you found more than a handful, lead with the most serious and note how many more remain rather than silently dropping them)',
-            description="code-review low-effort: output every qualifying finding (cap lifted)",
-        ),
-    ],
-
-    # v2.1.218 reworded the ReportFindings-tool branch of the low-effort
-    # ternary from "Output at most **4 findings** … one line each" (the
-    # else-branch, lifted above) to "Report at most **4 findings** … in one
-    # <tool> call" — a NEW verb/shape the else-branch rule doesn't match, so
-    # this structured-output path still capped low reviews at 4 while every
-    # sibling path already reports all qualifying findings. At v2.1.219 it
-    # became its own node.
-    "skill-code-review-effort-low-2.md": [
-        Rule(
-            stock='Report at most **4 findings**, most-severe first, in one',
-            unnerf='Report every qualifying finding, most-severe first, in one',
-            description='code-review low-effort ReportFindings branch: lift the 4-findings cap (matches the else-branch flip)',
-        ),
-        Rule(
-            stock='Effort-tier prompt for low code review — single diff pass, no verify, up to 4\n  findings reported in one ReportFindings call',
-            unnerf='Effort-tier prompt for low code review — single diff pass, no verify, all\n  qualifying findings reported in one ReportFindings call',
-            description='code-review low-2 frontmatter: match the lifted body (drop "up to 4")',
-        ),
-    ],
-    "skill-code-review-output-format.md": [
-        Rule(
-            stock='Return findings as a JSON array of at most ${MAX_FINDINGS} objects:',
-            unnerf='Return every surviving finding as a JSON array — ${MAX_FINDINGS} is a floor, not a ceiling; never drop a qualifying finding to stay under it:',
-            description='code-review JSON output: report every surviving finding',
-        ),
-        Rule(
-            stock='Ranked most-severe first. If more than ${MAX_FINDINGS} survive, keep the ${MAX_FINDINGS} most\nsevere. If nothing survives verification, return `[]`.',
-            unnerf='Ranked most-severe first. If more than ${MAX_FINDINGS} survive, report them all —\n${MAX_FINDINGS} is a floor, not a cap. If nothing survives verification, return `[]`.',
-            description='code-review JSON output: drop final findings cap',
-        ),
-    ],
-    "skill-code-review-output-report-findings.md": [
-        Rule(
-            stock='with `{level, findings}`. `findings` is at most ${MAX_FINDINGS} entries ranked\nmost-severe first; each entry has `file`, `line`, `summary`,',
-            unnerf='with `{level, findings}`. `findings` includes every surviving entry — at least\n${MAX_FINDINGS} when that many qualify, and more when more do — ranked\nmost-severe first; each entry has `file`, `line`, `summary`,',
-            description='ReportFindings output: report every surviving finding',
-        ),
-        Rule(
-            stock='`test-coverage` when one fits better) — plus `verdict` when a verify pass\nproduced one. If more than ${MAX_FINDINGS} survive, keep the ${MAX_FINDINGS} most severe. If\nnothing survives verification, call it with an empty array. Do not also print\nthe findings as text, and do not create or publish an artifact of the review -\nthe tool call is the report.',
-            unnerf='`test-coverage` when one fits better) — plus `verdict` when a verify pass\nproduced one. If more than ${MAX_FINDINGS} survive, report all of them —\n${MAX_FINDINGS} is a floor, not a ceiling. If\nnothing survives verification, call it with an empty array. Do not also print\nthe findings as text, and do not create or publish an artifact of the review -\nthe tool call is the report.',
-            description='ReportFindings output: drop final findings cap',
         ),
     ],
     "skill-code-review-findings-prioritization-note.md": [
@@ -1529,62 +1411,6 @@ RULES: dict[str, list[Rule]] = {
             description="web-fetch specialist: report everything relevant, not only what was literally asked",
         ),
     ],
-    "skill-design.md": [
-        Rule(
-            # v2.1.251: the "— so it looks native by default" lead-in clause is
-            # gone (that sentence now just ends at "density."); the cap itself
-            # is unchanged and still present as its own sentence right after.
-            # Narrowed the stock string to just the cap (confirmed unique in
-            # the file) rather than chase the shifted surrounding wording.
-            stock="Say in one line what you matched",
-            unnerf="Name the tokens, components, and values you matched",
-            description="design canvas: drop the one-line cap on reporting the matched design system",
-        ),
-    ],
-    "skill-artifact-design.md": [
-        Rule(
-            # v2.1.251: upstream flattened the em-dash to a plain hyphen; also
-            # matched the unnerf text's own em-dash to the file's new convention.
-            stock="Before writing code, sketch a short design plan - a compact token system with color, type, and layout:",
-            unnerf="Before writing code, write the design plan - a token system with color, type, and layout, specified so every build decision derives from it:",
-            description="artifact-design process: drop the 'short'/'compact' cap on the design plan",
-        ),
-        Rule(
-            # v2.1.257 bucket-analysis (bucket-analyze.mjs, 2026-09-01), re-anchored
-            # by hand for v2.1.280. The original rule quoted the WHOLE paragraph,
-            # which is why it broke: upstream grew it from 914 to 1412 chars,
-            # adding the ArtifactCheck / `action: "preview"` mechanics, guidance
-            # for pages whose point is logic or stored data, and a carve-out for
-            # content filled into an Artifact type. Re-quoting the expanded
-            # paragraph would have deleted all of that, so the flip is now split
-            # across the three cap-bearing phrases and leaves upstream's mechanics
-            # untouched. Short unique anchors also survive the next edit to the
-            # surrounding prose (UNNERF-GUIDE Part 6, "prefer a short, unique
-            # stock substring"). Full keep/lift review:
-            # data/bucket-analysis-2.1.257.json
-            stock="**Write, look once, publish.**",
-            unnerf="**Write, verify, publish.**",
-            description="artifact-design heading: verify rather than look once",
-        ),
-        Rule(
-            # Lifted too, or the paragraph contradicts itself: the two rules below
-            # tell Claude to iterate and to take screenshots (plural), while this
-            # lead clause still capped it at one look.
-            stock="Before publishing you may look at the rendered page once - one screenshot of the local file",
-            unnerf="Before publishing, inspect the rendered page - screenshots of the local file",
-            description="artifact-design: drop the one-look cap in the lead clause",
-        ),
-        Rule(
-            stock="then one pass of edits for what it shows, without a second look.",
-            unnerf="then iterate on what it shows until the page matches the design plan.",
-            description="artifact-design: drop the single-look cap on pre-publish review",
-        ),
-        Rule(
-            stock="Don't build a test loop around your own file: no repeated screenshots, no pulling the script out to run it through node, no scripts that probe the DOM. That loop spends the session re-checking what a careful write already settled, while the user waits for a link.",
-            unnerf="Verify your own work before publishing: take the screenshots, run the script, and probe the DOM as far as confirming the page renders and behaves correctly requires.",
-            description="artifact-design: permit verification loops before publishing",
-        ),
-    ],
     "tool-description-product-feedback-draft.md": [
         Rule(
             # v2.1.251: upstream replaced the em-dash with a comma here (unlike
@@ -1691,6 +1517,142 @@ RULES: dict[str, list[Rule]] = {
             stock="Your final report to the main session is one or two lines: what the thread asked for and what you did.",
             unnerf="Your final report to the main session should clearly explain what the thread asked for, the changes you made, and any verification results or context the main session needs.",
             description="artifact thread: drop one-or-two-line cap on final report",
+        ),
+    ],
+
+    # -------------------------------------------------------------------------
+    # v2.1.292 re-anchors. Upstream restructured the code-review skill, both loop
+    # skills and the artifact-design process prompt in one release; these blocks
+    # follow the passages to their new fragments (UNNERF-GUIDE Part 6).
+    # -------------------------------------------------------------------------
+
+    # Phase 1 is now ONE shared fragment instead of a copy per effort tier, so
+    # the medium and high rules (identical stock) collapse into this single pair.
+    "skill-code-review-effort-inline-no-subagents.md": [
+        Rule(
+            stock="## Phase 1 \u2014 Find candidates (3 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle, up to 6 each)",
+            unnerf="## Phase 1 \u2014 Find candidates (3 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle)",
+            description="code-review phase heading: drop per-angle cap (shared inline tier)",
+        ),
+        Rule(
+            stock="surfaces **up to 6 candidate findings** with `file`, `line`, a one-line\n`summary`, and a concrete `failure_scenario`.",
+            unnerf="surfaces every candidate finding with `file`, `line`, a one-line\n`summary`, and a concrete `failure_scenario`.",
+            description="code-review finders: surface every candidate (shared inline tier)",
+        ),
+    ],
+
+    # The findings cap is now injected as ${MAX_FINDINGS} rather than written as a
+    # literal. Register rule 6 forbids dropping the placeholder (the splicer binds
+    # slots by position, so losing one loses the whole prompt), so the prose around
+    # it is rewritten until the number stops binding, per Part 1's "No numeric
+    # output limits". Same sentence appears in two fragments; both are flipped so
+    # no un-ruled sibling is left behind.
+    "skill-code-review-output-cap-condition.md": [
+        Rule(
+            stock="If more than ${MAX_FINDINGS} survive, keep the ${MAX_FINDINGS} most\nsevere.",
+            unnerf="Report every finding that survives, most severe first; ${MAX_FINDINGS} is a\nfloor, not a ceiling, and never a reason to drop a real ${MAX_FINDINGS}th finding.",
+            description="code-review: ${MAX_FINDINGS} is a floor, not a ceiling",
+        ),
+    ],
+    "skill-code-review-findings-keep-most-severe.md": [
+        Rule(
+            stock="If more than ${MAX_FINDINGS} survive, keep the ${MAX_FINDINGS} most severe.",
+            unnerf="Report every finding that survives, most severe first; ${MAX_FINDINGS} is a floor, not a ceiling, and never a reason to drop a real ${MAX_FINDINGS}th finding.",
+            description="code-review: ${MAX_FINDINGS} is a floor, not a ceiling (sibling)",
+        ),
+    ],
+    "skill-code-review-output-one-line-target-four.md": [
+        Rule(
+            stock="Target **min(files_changed, 4) findings**, most-severe first,",
+            unnerf="Report **every qualifying finding**, most-severe first,",
+            description="code-review low-effort one-line output: drop the 4-finding target",
+        ),
+    ],
+    "skill-code-review-output-report-findings-target-four.md": [
+        Rule(
+            stock="Target **min(files_changed, 4) findings**, most-severe first, reported",
+            unnerf="Report **every qualifying finding**, most-severe first, reported",
+            description="code-review low-effort ReportFindings: drop the 4-finding target",
+        ),
+    ],
+
+    # Both loop modes now share one steps fragment, and each mode's confirmation
+    # content moved into its own phrase fragment behind a ${} slot. So the single
+    # "Briefly" cap is flipped once, centrally, and the reasoning requirement is
+    # added to each mode's phrase.
+    "skill-loop-self-pacing-steps-3-and-4.md": [
+        Rule(
+            stock="3. **Briefly confirm**:",
+            unnerf="3. **Confirm thoroughly**:",
+            description="loop confirm: thorough rather than brief (shared by both pacing modes)",
+        ),
+    ],
+    "skill-loop-self-pacing-confirmation-phrase.md": [
+        Rule(
+            stock="that you're self-pacing, whether a ${MONITOR_TOOL_NAME} is the primary wake signal, that you ran the task now, and what fallback delay",
+            unnerf="that you're self-pacing, whether a ${MONITOR_TOOL_NAME} is the primary wake signal and why you chose that approach, that you ran the task now, and what fallback delay",
+            description="self-pacing confirm: include the reasoning behind the pacing choice",
+        ),
+    ],
+    "skill-loop-dynamic-mode-confirmation-phrase.md": [
+        Rule(
+            stock="${CONFIRMATION_PREFIX}, whether a ${MONITOR_TOOL_NAME} is the primary wake signal, and what fallback delay",
+            unnerf="${CONFIRMATION_PREFIX}, whether a ${MONITOR_TOOL_NAME} is the primary wake signal and why you chose that approach, and what fallback delay",
+            description="dynamic pacing confirm: include the reasoning behind the pacing choice",
+        ),
+    ],
+
+    # Upstream rewrote this paragraph wholesale for the second release running --
+    # it is now much longer and carries real mechanics (ArtifactCheck coverage, a
+    # capabilities read-back protocol). Anchored on the four cap-bearing phrases
+    # only, so none of that mechanics text is owned by a rule.
+    "skill-artifact-design.md": [
+        Rule(
+            stock="**Write, check once, publish.**",
+            unnerf="**Write, verify, publish.**",
+            description="artifact-design heading: verify rather than check once",
+        ),
+        Rule(
+            stock="you may look at the rendered page once, where this session offers a way",
+            unnerf="inspect the rendered page, where this session offers a way",
+            description="artifact-design: drop the one-look cap in the lead clause",
+        ),
+        Rule(
+            stock="The look is optional: if you take it, make one pass of edits for what it shows, without a second look; then publish.",
+            unnerf="If you take the look, iterate on what it shows until the page matches the design plan; then publish.",
+            description="artifact-design: drop the single-pass cap on pre-publish edits",
+        ),
+        Rule(
+            stock="None of this becomes a loop, because the user is waiting for a link: no second screenshot, no scripts that probe the DOM, no re-running a check that passed.",
+            unnerf="Keep this proportionate, because the user is waiting for a link: verify what the page's correctness actually depends on, and skip re-running a check that already passed.",
+            description="artifact-design: permit verification proportionate to the page",
+        ),
+    ],
+    # -------------------------------------------------------------------------
+    # v2.1.292 sync (bucket-analyze.mjs, 2026-10-06): AI-proposed, mechanically
+    # validated (stock occurs exactly once, no new ${VAR} introduced, no overlap
+    # with an existing rule, confirmed to actually match via --dry-run). Full
+    # keep/lift review (every KEEP decision and why too): data/bucket-analysis-2.1.292.json
+    # -------------------------------------------------------------------------
+    "skill-token-usage-breakdown-chart-guidance.md": [
+        Rule(
+            stock="Then give the totals in a line, and explain the chart briefly in everyday words without technical jargon — a few short bullet points, not paragraphs. Close with these caveats, briefly: \n",
+            unnerf="Then give the totals in a line, and explain the chart clearly in everyday words without technical jargon. Close with these caveats:\n",
+            description="token breakdown chart: drop brevity caps on explanation and caveats",
+        ),
+    ],
+    "system-prompt-token-cost-efficiency-reminder.md": [
+        Rule(
+            stock="The user pays per token for your turns, and wants the job done for what it needs and no more.\n",
+            unnerf="Do whatever the task requires thoroughly and completely, without cutting corners or withholding necessary work.\n",
+            description="token cost reminder: prioritize thoroughness and completeness over artificial frugality",
+        ),
+    ],
+    "skill-code-review-effort-xhigh-inline.md": [
+        Rule(
+            stock="## Phase 1 — Find candidates (5 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle, up to 8 each)\n\nRun **10 independent finder angles** in sequence yourself, in THIS context — do NOT spawn subagents for them. Each\nsurfaces **up to 8 candidate findings**.",
+            unnerf="## Phase 1 — Find candidates (5 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle, uncapped)\n\nRun **10 independent finder angles** in sequence yourself, in THIS context — do NOT spawn subagents for them. Each\nsurfaces all candidate findings.",
+            description="code-review xhigh-inline Phase 1: drop 8-candidate cap per finder angle",
         ),
     ],
 }
