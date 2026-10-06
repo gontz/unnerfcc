@@ -57,7 +57,9 @@ import { findGeminiApiKey, callGemini, DEFAULT_GEMINI_MODEL } from "./llm-provid
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 function loadJson(p) {
-  return JSON.parse(readFileSync(p, "utf-8"));
+  // Strip a UTF-8 BOM: a labeling worker on Windows writes its file through
+  // PowerShell, whose default encoding adds one, and JSON.parse rejects it.
+  return JSON.parse(readFileSync(p, "utf-8").replace(/^/, ""));
 }
 
 /** Distinct id prefixes present in the catalog, for convention guidance. */

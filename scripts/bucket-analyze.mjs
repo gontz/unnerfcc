@@ -73,14 +73,20 @@ const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SYS_PROMPTS = join(REPO, "system-prompts");
 const CANDIDATES_PATH = join(REPO, "data", "unnerf-candidates.json");
 
+// Windows ships `python`, not `python3` (the Store alias stub and the
+// extensionless shims both shadow a real python3 there).
+const PYTHON = process.platform === "win32" ? "python" : "python3";
+
 function loadJson(p) {
-  return JSON.parse(readFileSync(p, "utf-8"));
+  // Strip a UTF-8 BOM: a verdict worker on Windows writes its file through
+  // PowerShell, whose default encoding adds one, and JSON.parse rejects it.
+  return JSON.parse(readFileSync(p, "utf-8").replace(/^/, ""));
 }
 
 /** Every currently-registered rule, via apply-unnerfs.py's own --dump-rules. */
 function dumpExistingRules(applyUnnerfsPath) {
   const tmp = applyUnnerfsPath + ".rules-dump.tmp.json";
-  execFileSync("python3", [applyUnnerfsPath, "--dump-rules", tmp], { stdio: "pipe" });
+  execFileSync(PYTHON, [applyUnnerfsPath, "--dump-rules", tmp], { stdio: "pipe" });
   const rules = loadJson(tmp);
   try { unlinkSync(tmp); } catch {}
   return rules; // [{id, stock, unnerf, description}] — id is the filename minus ".md"
@@ -298,7 +304,7 @@ function merge(workDir, applyUnnerfsPath, ccVersion) {
   // caller (upgrade.sh) runs the real apply pass AND --check right after this
   // — that is where "everything converges cleanly" gets verified.
   try {
-    execFileSync("python3", [applyUnnerfsPath, "--dry-run"], { stdio: "pipe", cwd: REPO });
+    execFileSync(PYTHON, [applyUnnerfsPath, "--dry-run"], { stdio: "pipe", cwd: REPO });
   } catch (e) {
     // No automatic rollback — apply-unnerfs.py is git-tracked, same as every
     // other file upgrade.sh touches; `git checkout` (or just fixing the rule

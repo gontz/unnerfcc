@@ -1,0 +1,8 @@
+# Windows safety. This repo's own tools rewrite these files byte-for-byte
+# (sync-version.mjs, apply-unnerfs.py) and every un-nerf rule matches its prompt
+# by an exact text anchor, so the on-disk form has to be LF everywhere.
+#
+# Without this, a clone on Windows with core.autocrlf=true checks out *.sh with
+# CRLF — bash then dies on the shebang — and a regenerated prompt set shows all
+# ~6,900 files as modified even when the bytes are identical.
+* text=auto eol=lf

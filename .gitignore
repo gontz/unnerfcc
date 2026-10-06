@@ -27,6 +27,7 @@ system-prompts/*.diff.html
 .claude/*
 !.claude/skills/
 .serena/
+.qwen/
 
 # Node deps for scripts/ (gray-matter is pinned in scripts/package.json;
 # the lockfile is checked in for reproducibility).

@@ -71,6 +71,8 @@ import { extract, isMarkdownAssetPath, extractMarkdownAsset } from "../engine/ex
 import { canonicalize } from "./prompt-index.mjs";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
+// Windows ships `python`, not `python3`.
+const PYTHON = process.platform === "win32" ? "python" : "python3";
 
 const argv = process.argv.slice(2);
 const QUIET = argv.includes("--quiet");
@@ -228,7 +230,7 @@ say(`  reworded or deleted upstream      : ${lost.length}`);
 let rules = [];
 try {
   const dump = join(tmpdir(), `unnerfcc-rules-${process.pid}.json`);
-  execFileSync("python3", [join(REPO, "scripts", "apply-unnerfs.py"), "--dump-rules", dump], { stdio: "ignore" });
+  execFileSync(PYTHON, [join(REPO, "scripts", "apply-unnerfs.py"), "--dump-rules", dump], { stdio: "ignore" });
   const raw = JSON.parse(readFileSync(dump, "utf8"));
   rules = Array.isArray(raw) ? raw : (raw.rules || Object.values(raw).flat());
 } catch {

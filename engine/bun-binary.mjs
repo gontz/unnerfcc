@@ -110,7 +110,9 @@ function isZstd(buf) {
 // these names come from Anthropic's own build, not adversarial input, but
 // the check is free).
 function moduleRelPath(name) {
-  const rel = name.replace(/^\/+/, "");
+  // Windows builds name modules "B:/~BUN/root/…" — strip the drive prefix
+  // (":" is not a legal filename character) before the leading-slash strip.
+  const rel = name.replace(/^[A-Za-z]:\//, "").replace(/^\/+/, "");
   const parts = rel.split("/");
   if (parts.some((p) => p === "..")) throw fmtErr(`unsafe module name (contains ..): ${name}`);
   return parts.join(sep);
@@ -124,7 +126,8 @@ function fmtErr(msg) {
 function detectFormat(buf) {
   if (buf.length >= 4 && buf.readUInt32BE(0) === 0x7f454c46) return "elf";
   if (buf.length >= 4 && buf.readUInt32LE(0) === MH_MAGIC_64) return "macho";
-  throw fmtErr("unrecognized binary format (neither ELF nor 64-bit Mach-O)");
+  if (buf.length >= 2 && buf.readUInt16LE(0) === 0x5a4d) return "pe";
+  throw fmtErr("unrecognized binary format (neither ELF, 64-bit Mach-O, nor PE)");
 }
 
 // --- minimal Mach-O load-command parse (find __BUN,__bun offset/size/vaddr) -
@@ -196,6 +199,33 @@ function findBunSectionELF(buf) {
   return bun;
 }
 
+// --- minimal PE section-table parse (find .bun offset/size/vaddr) -----------
+// Windows builds ship the blob in a PE section named ".bun". Raw section size
+// on disk is FileAlignment-padded, so the exact blob length comes from the
+// size header inside the section (parseBinary() slices to it; the padding
+// tolerance there covers the alignment slack).
+function findBunSectionPE(buf) {
+  if (buf.length < 0x40 || buf.readUInt16LE(0) !== 0x5a4d) throw fmtErr("not a PE binary (no MZ header)");
+  const e_lfanew = buf.readUInt32LE(0x3c);
+  if (e_lfanew + 24 > buf.length || buf.readUInt32LE(e_lfanew) !== 0x00004550) // "PE\0\0"
+    throw fmtErr("PE signature not found");
+  const numberOfSections = buf.readUInt16LE(e_lfanew + 6);
+  const sizeOfOptionalHeader = buf.readUInt16LE(e_lfanew + 20);
+  let off = e_lfanew + 24 + sizeOfOptionalHeader;
+  for (let i = 0; i < numberOfSections; i++, off += 40) {
+    if (off + 40 > buf.length) throw fmtErr("PE section table truncated");
+    const name = buf.toString("latin1", off, off + 8).replace(/\0.*$/, "");
+    if (name === ".bun") {
+      const virtualAddress = buf.readUInt32LE(off + 12);
+      const sizeOfRawData = buf.readUInt32LE(off + 16);
+      const pointerToRawData = buf.readUInt32LE(off + 20);
+      if (pointerToRawData + sizeOfRawData > buf.length) throw fmtErr(".bun section runs past end of file");
+      return { off: pointerToRawData, size: sizeOfRawData, vaddr: virtualAddress };
+    }
+  }
+  return null;
+}
+
 // --- StringPointer helpers --------------------------------------------------
 const readSP = (blob, at) => ({ offset: blob.readUInt32LE(at), length: blob.readUInt32LE(at + 4) });
 // Bounds-checked content read: a StringPointer that runs past the blob (or is
@@ -229,7 +259,10 @@ function moduleTableIsValid(blob, modulesListSP, structSize) {
       const len = list.readUInt32LE(b + k * SIZEOF_SP + 4);
       if (off + len > blob.length) return false;
       if (k === 0) {
-        if (len === 0 || blob[off] !== 0x2f /* "/" */) return false;
+        // Unix names are "/$bunfs/root/…"; Windows names are drive-letter
+        // style, "B:/~BUN/root/…" — accept either shape.
+        const winDrive = len >= 3 && blob[off + 1] === 0x3a /* ":" */ && blob[off + 2] === 0x2f;
+        if (len === 0 || (blob[off] !== 0x2f /* "/" */ && !winDrive)) return false;
         if (blob.indexOf(0, off) < off + len) return false; // NUL inside the name
       }
     }
@@ -305,12 +338,17 @@ function parseModules(blob, offsets, structSize) {
 export function parseBinary(binaryPath) {
   const buf = readFileSync(binaryPath);
   const format = detectFormat(buf);
-  const sec = format === "elf" ? findBunSectionELF(buf) : findBunSectionMachO(buf);
+  const sec =
+    format === "elf" ? findBunSectionELF(buf)
+    : format === "pe" ? findBunSectionPE(buf)
+    : findBunSectionMachO(buf);
   if (!sec) {
     throw fmtErr(
       format === "elf"
         ? ".bun section not found (only the ELF .bun-section format is supported)"
-        : "__BUN segment not found (only the Mach-O __BUN,__bun segment format is supported)"
+        : format === "pe"
+          ? ".bun section not found (only the PE .bun-section format is supported)"
+          : "__BUN segment not found (only the Mach-O __BUN,__bun segment format is supported)"
     );
   }
   if (format === "elf") {
@@ -327,12 +365,18 @@ export function parseBinary(binaryPath) {
     }
   }
   const section = buf.subarray(sec.off, sec.off + sec.size);
-  // size header: u64 (Bun ≥ 1.3.4) else u32
-  let headerSize;
-  if (section.length >= 8 && Number(section.readBigUInt64LE(0)) + 8 === section.length) headerSize = 8;
-  else if (section.length >= 4 && section.readUInt32LE(0) + 4 === section.length) headerSize = 4;
+  // size header: u64 (Bun ≥ 1.3.4) else u32. PE raw sections are
+  // FileAlignment-padded, so allow up to 4 KiB of trailing padding and slice
+  // the blob to the exact length the header declares. ELF/Mach-O sections are
+  // exact (padding 0), so this is a strict superset of the equality check.
+  const PAD = 4096;
+  let headerSize, blobLen;
+  const u64 = section.length >= 8 ? Number(section.readBigUInt64LE(0)) : -1;
+  const u32 = section.length >= 4 ? section.readUInt32LE(0) : -1;
+  if (u64 >= 0 && u64 + 8 <= section.length && u64 + 8 >= section.length - PAD) { headerSize = 8; blobLen = u64; }
+  else if (u32 >= 0 && u32 + 4 <= section.length && u32 + 4 >= section.length - PAD) { headerSize = 4; blobLen = u32; }
   else throw fmtErr("unrecognized .bun section size header");
-  const blob = section.subarray(headerSize);
+  const blob = section.subarray(headerSize, headerSize + blobLen);
   const offsets = parseOffsets(blob);
   const structSize = detectModuleStruct(blob, offsets);
   const modules = parseModules(blob, offsets, structSize);
@@ -541,7 +585,32 @@ export async function repackFromDir(binaryPath, inDir, outPath) {
   const newBlob = rebuildBlobMulti(meta, replacements);
   const newSection = buildSectionData(newBlob, meta.headerSize);
   if (meta.format === "macho") return repackMachO(binaryPath, newSection, outPath);
+  if (meta.format === "pe") return repackPE(binaryPath, newSection, outPath);
   return repackELF(binaryPath, newSection, outPath);
+}
+
+// --- PE repack: resize .bun via LIEF relayout, no pointer patch, no sign ----
+// Mirrors the proven approach in tweakcc-fixed's repackPE (nativeInstallation.ts):
+// PE sections carry both a raw (on-disk) size and a virtual (in-memory) size —
+// set BOTH to the new section length and let LIEF relayout the file. The Bun
+// Windows runtime locates the blob via the section table (no hardcoded vaddr
+// pointer like ELF), so no address patch is needed, and PE has no enforced
+// code signature (unlike Mach-O), so no re-sign step.
+async function repackPE(binaryPath, newSection, outPath) {
+  const LIEF = (await import("node-lief")).default;
+  LIEF.logging?.disable?.();
+  const bin = LIEF.parse(binaryPath);
+  if (!bin || bin.format !== "PE") throw fmtErr("node-lief could not parse the binary as PE");
+  const sec = bin.sections().find((s) => s.name === ".bun");
+  if (!sec) throw fmtErr(".bun section not found by node-lief");
+  sec.content = newSection;
+  sec.virtualSize = BigInt(newSection.length);
+  sec.size = BigInt(newSection.length);
+  const tmp = outPath + ".tmp";
+  bin.write(tmp);
+  try { chmodSync(tmp, statSync(binaryPath).mode); } catch {}
+  try { renameSync(tmp, outPath); }
+  catch (e) { try { if (existsSync(tmp)) unlinkSync(tmp); } catch {} throw e; }
 }
 
 // --- Mach-O repack: extend __BUN in place, no pointer patch, re-sign --------

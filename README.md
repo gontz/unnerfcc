@@ -25,6 +25,8 @@ unnerfcc is **standalone** — it patches your Claude Code binary with its own t
 ./install.sh          # --help for options; --dry-run to preview
 ```
 
+On Windows, run `.\install.ps1` in PowerShell 7 instead — same flags, same flow; `upgrade.ps1` likewise. See [WINDOWS.md](WINDOWS.md).
+
 [`install.sh`](install.sh) auto-installs Claude Code via npm if it isn't already on your PATH, targets the newest version it has a prompt catalog for (keeping an already-installed supported version, otherwise installing/switching — and warning if CC's latest npm release is newer than our newest catalog), rebuilds that version's un-nerfed prompt set, unpacks its JS bundle, splices the un-nerfs in (`apply-unnerfs.py --quiet`), **repacks and boot-checks** the result, and swaps in the patched binary only after it boots clean (refusing to install a binary that won't boot), then disables CC's auto-updater so the patch survives. No binary backup is kept — to roll back, reinstall Claude Code: `npm install -g @anthropic-ai/claude-code@<version>`.
 
 To sync to a **new** CC release, see [`upgrade.sh`](upgrade.sh) / [UPGRADE.md](UPGRADE.md).
