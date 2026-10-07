@@ -3,7 +3,7 @@ name: 'Data: Live documentation sources'
 description: >-
   WebFetch URLs for fetching current Claude API and Agent SDK documentation from
   official sources
-ccVersion: 2.1.280
+ccVersion: 2.1.292
 -->
 # Live Documentation Sources
 
@@ -127,11 +127,12 @@ Use these when a managed-agents binding, behavior, or wire-level detail isn't co
 
 ### Anthropic CLI
 
-The `ant` CLI provides terminal access to the Claude API. Every API resource is exposed as a subcommand. It is the recommended way to create agents and environments from version-controlled YAML (`ant beta:agents create < agent.yaml` - see `shared/anthropic-cli.md`), and also exposes sessions and every other API resource for scripting and interactive inspection.
+The `ant` CLI provides terminal access to the Claude API. Every API resource is exposed as a subcommand. It is the recommended way to keep agents, environments, skills, memory stores, vaults and deployments as version-controlled files (`ant apply` - see `shared/anthropic-cli.md`), and also exposes sessions and every other API resource for scripting and interactive inspection.
 
 | Topic         | URL                                                     | Extraction Prompt                                                                                  |
 | ------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | Anthropic CLI | `https://platform.claude.com/docs/en/cli-sdks-libraries/cli/quickstart.md` | "Extract CLI install, authentication, command structure, and sending a first request" |
+| `ant apply` | `https://platform.claude.com/docs/en/cli-sdks-libraries/cli/apply.md` | "Extract the file layout per resource kind, how a file's kind is inferred, path references between files, `claude-lock.json`, the flags (`--dry-run`, `--yes`, `--force`, `--prune`, `--upgrade`, `--lock-file`), and the CI setup" |
 | `ant beta:sessions connect` | `https://platform.claude.com/docs/en/cli-sdks-libraries/cli/sessions-connect.md` | "Extract the interactive session viewer: keybindings, tool-call allow/deny prompt, `--web` local viewer and its URL/lifetime rules" |
 | Authentication overview | `https://platform.claude.com/docs/en/manage-claude/authentication.md` | "Extract the credential options (API keys, interactive OAuth login, Workload Identity Federation) and when to use each" |
 | WIF reference | `https://platform.claude.com/docs/en/manage-claude/wif-reference.md`  | "Extract credential precedence order, the profile configuration file schema, and the configuration directory layout" |

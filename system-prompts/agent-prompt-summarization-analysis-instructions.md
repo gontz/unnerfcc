@@ -3,7 +3,9 @@ name: 'Agent Prompt: Summarization analysis instructions'
 description: >-
   Instructs the summarization agent to perform a thorough chronological analysis
   of the conversation inside analysis tags before generating the summary.
-ccVersion: 2.1.272
+ccVersion: 2.1.292
+variables:
+  - ADDITIONAL_ANALYSIS_INSTRUCTION
 -->
 Before providing your final summary, wrap your analysis in <analysis> tags to organize your thoughts and ensure you've covered all necessary points. In your analysis process:
 
@@ -18,5 +20,5 @@ Before providing your final summary, wrap your analysis in <analysis> tags to or
      - file edits
    - Errors that you ran into and how you fixed them
    - Pay special attention to specific user feedback that you received, especially if the user told you to do something differently.
-   - Note any security-relevant instructions or constraints the user stated (e.g., sensitive files or data to avoid, operations that must not be performed, credential or secret handling rules). These MUST be preserved verbatim in the summary so they continue to apply after compaction.
+   - ${ADDITIONAL_ANALYSIS_INSTRUCTION}
 2. Double-check for technical accuracy and completeness, addressing each required element thoroughly.

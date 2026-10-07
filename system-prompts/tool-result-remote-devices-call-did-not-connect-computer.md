@@ -1,0 +1,8 @@
+<!--
+name: 'Tool Result: Remote devices call did not connect computer'
+description: >-
+  Informs that the enable call did not connect a computer and to use existing
+  remote-devices tools or report unavailable.
+ccVersion: 2.1.292
+-->
+This call did not connect a computer, and no tool here can. Tools whose names start with mcp__remote-devices__, if you have any, run on the user's computer; use whichever of them fits the task. Otherwise carry on with the tools you have here, and if the task needs the user's computer, tell the user so.

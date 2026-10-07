@@ -3,7 +3,7 @@ name: 'Data: Managed Agents environments and resources'
 description: >-
   Reference documentation covering Managed Agents environments, file resources,
   GitHub repository mounting, and the Files API with SDK examples
-ccVersion: 2.1.251
+ccVersion: 2.1.292
 -->
 # Managed Agents - Environments & Resources
 
@@ -33,11 +33,11 @@ Creating a session requires an `environment_id`. Environments are **reusable con
 
 All three `limited` fields are optional. `allow_package_managers` (default `false`) permits PyPI/npm/etc.; `allow_mcp_servers` (default `false`) permits the agent's configured MCP server endpoints without listing them in `allowed_hosts`.
 
-**MCP caveat:** Under `limited` networking, either set `allow_mcp_servers: true` or add each MCP server domain to `allowed_hosts`. Otherwise the container can't reach them and tools silently fail.
+**MCP caveat:** Under `limited` networking, either set `allow_mcp_servers: true` or add each MCP server domain to `allowed_hosts`. Otherwise creating a session for an agent that declares those servers fails with a 400 naming the blocked hosts.
 
 **Packages caveat:** Under `limited` networking, `packages` requires `allow_package_managers: true`; otherwise the request fails with a 400. Listing the registry in `allowed_hosts` is not enough.
 
-**`networking` does not govern `web_search` / `web_fetch`.** Those tools run on Anthropic's servers (in cloud *and* self-hosted environments), so `limited` egress and `allowed_hosts` don't restrict them. To restrict the sites they can reach, set `allowed_domains` / `blocked_domains` on the tool's `configs` entry in the agent toolset - see `shared/managed-agents-tools.md` § Web search & web fetch settings.
+**`networking` does not govern `web_search` / `web_fetch`.** Those tools run on Anthropic's servers (in cloud *and* self-hosted environments), so `limited` egress and `allowed_hosts` don't restrict them. Turn them off (`enabled: false`) unless the job needs the web; when it does, limit the sites they can reach with `allowed_domains` / `blocked_domains`. Both go on the tool's `configs` entry in the agent toolset - see `shared/managed-agents-tools.md` § Agent Toolset and § Web search & web fetch settings.
 
 ### Creating an environment
 
@@ -48,7 +48,7 @@ const env = await client.beta.environments.create({
   name: "my_env",
   config: {
     type: "cloud",
-    networking: { type: "unrestricted" },
+    networking: { type: "limited", allow_package_managers: true, allow_mcp_servers: true },
   },
 });
 ```
@@ -76,13 +76,12 @@ Attach files, GitHub repositories, and memory stores to a session. Resources are
 
 ### File Uploads (input - host -> agent)
 
-Upload a file first via the Files API, then reference by `file_id` + `mount_path`:
+Upload a file first via the Files API, then reference it by `file_id` (and optionally a `mount_path`):
 
 ```ts
 // 1. Upload
 const file = await client.beta.files.upload({
   file: fs.createReadStream("data.csv"),
-  purpose: "agent",
 });
 
 // 2. Attach as a session resource
@@ -90,12 +89,12 @@ const session = await client.beta.sessions.create({
   agent: agent.id,
   environment_id: envId,
   resources: [
-    { type: "file", file_id: file.id, mount_path: "/workspace/data.csv" }
+    { type: "file", file_id: file.id, mount_path: "/data.csv" }
   ],
 });
 ```
 
-**`mount_path` is required** and must be absolute. Parent directories are created automatically. Agent working directory defaults to `/workspace`. Files are mounted read-only - the agent writes modified versions to new paths.
+**`mount_path` is optional**; when set, it should be absolute and is rooted under the session's uploads directory: `/data.csv` lands at `/mnt/session/uploads/data.csv`. Without it, the file lands at `/mnt/session/uploads/<file_id>`. A prompt that points the agent at the file should use the full `/mnt/session/uploads/...` path. Parent directories are created automatically. Agent working directory defaults to `/workspace`. Files are mounted read-only - the agent writes modified versions to new paths.
 
 ### Session outputs (output - agent -> host)
 
@@ -116,7 +115,7 @@ for await (const f of client.beta.files.list({
 **Requirements:**
 - The `write` tool (or `bash`) must be enabled for the agent to create output files.
 - Session-scoped `files.list` / `files.download` captures outputs written to `/mnt/session/outputs/`.
-- The filter parameter is **`scope_id`** (REST query param `?scope_id=<session_id>`). The SDK's files resource auto-adds only the `files-api-2025-04-14` header, so pass `betas: ["managed-agents-2026-04-01"]` explicitly (or both headers on raw HTTP) - without it the API may reject `scope_id` as an unknown field. Requires `@anthropic-ai/sdk` >= 0.88.0 / `anthropic` (Python) >= 0.92.0 - older versions don't type `scope_id`. The `ant` CLI does **not** expose this flag yet; use the SDK or curl.
+- The filter parameter is **`scope_id`** (REST query param `?scope_id=<session_id>`). Filtering by `scope_id` requires the `managed-agents-2026-04-01` header, which `client.beta.files` does not add, so pass `betas: ["managed-agents-2026-04-01"]` explicitly (on raw HTTP, send `anthropic-beta: managed-agents-2026-04-01`); the list call uses the `beta` files namespace only to pass that header, and upload and download also work on `client.files`. Requires `@anthropic-ai/sdk` >= 0.88.0 / `anthropic` (Python) >= 0.92.0 - older versions don't type `scope_id`. In the `ant` CLI, use `ant beta:files list --scope-id <session_id> --beta managed-agents-2026-04-01`.
 - Pass the session ID returned by `sessions.create()` verbatim (e.g. `sesn_011CZx...`) - the API validates the prefix.
 - There's a brief indexing lag (~1-3s) between `session.status_idle` and output files appearing in `files.list`. Retry once or twice if empty.
 
@@ -162,7 +161,14 @@ const agent = await client.beta.agents.create(
       { type: 'url', name: 'github', url: 'https://api.githubcopilot.com/mcp/' },
     ],
     tools: [
-      { type: 'agent_toolset_20260401', default_config: { enabled: true } },
+      {
+        type: 'agent_toolset_20260401',
+        default_config: { enabled: true, permission_policy: { type: 'auto' } },
+        configs: [
+          { name: 'web_fetch', enabled: false },
+          { name: 'web_search', enabled: false },
+        ],
+      },
       { type: 'mcp_toolset', mcp_server_name: 'github' },
     ],
   },
@@ -198,7 +204,14 @@ agent = client.beta.agents.create(
         "url": "https://api.githubcopilot.com/mcp/",
     }],
     tools=[
-        {"type": "agent_toolset_20260401", "default_config": {"enabled": True}},
+        {
+            "type": "agent_toolset_20260401",
+            "default_config": {"enabled": True, "permission_policy": {"type": "auto"}},
+            "configs": [
+                {"name": "web_fetch", "enabled": False},
+                {"name": "web_search", "enabled": False},
+            ],
+        },
         {"type": "mcp_toolset", "mcp_server_name": "github"},
     ],
 )

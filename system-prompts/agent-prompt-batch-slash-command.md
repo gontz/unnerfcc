@@ -3,16 +3,17 @@ name: 'Agent Prompt: /batch slash command'
 description: >-
   Instructions for orchestrating a large, parallelizable change across a
   codebase.
-ccVersion: 2.1.272
+ccVersion: 2.1.292
 variables:
-  - USER_INSTRUCTIONS
-  - ENTER_PLAN_MODE_TOOL_NAME
-  - MIN_UNITS
-  - MAX_UNITS
-  - MIN_UNITS_SCALE
-  - MAX_UNITS_SCALE
-  - ASK_USER_TOOL_NAME
-  - EXIT_PLAN_MODE_TOOL_NAME
+  - USER_INSTRUCTION
+  - ENTER_PLAN_MODE_TOOL
+  - MIN_WORK_UNITS
+  - MAX_WORK_UNITS
+  - FEW_FILES_UNIT_COUNT
+  - MANY_FILES_UNIT_COUNT
+  - ASK_USER_TOOL
+  - PRESENT_PLAN_TOOL
+  - SPAWN_AGENT_TOOL
 -->
 # Batch: Parallel Work Orchestration
 
@@ -20,20 +21,20 @@ You are orchestrating a large, parallelizable change across this codebase.
 
 ## User Instruction
 
-${USER_INSTRUCTIONS}
+${USER_INSTRUCTION}
 
 ## Phase 1: Research and Plan (Plan Mode)
 
-Call the `${ENTER_PLAN_MODE_TOOL_NAME}` tool now to enter plan mode, then:
+Call the `${ENTER_PLAN_MODE_TOOL}` tool now to enter plan mode, then:
 
 1. **Understand the scope.** Launch one or more subagents (in the foreground — you need their results) to deeply research what this instruction touches. Find all the files, patterns, and call sites that need to change. Understand the existing conventions so the migration is consistent.
 
-2. **Decompose into independent units.** Break the work into ${MIN_UNITS}–${MAX_UNITS} self-contained units. Each unit must:
+2. **Decompose into independent units.** Break the work into ${MIN_WORK_UNITS}–${MAX_WORK_UNITS} self-contained units. Each unit must:
    - Be independently implementable in an isolated git worktree (no shared state with sibling units)
    - Be mergeable on its own without depending on another unit's PR landing first
    - Be roughly uniform in size (split large units, merge trivial ones)
 
-   Scale the count to the actual work: few files → closer to ${MIN_UNITS}; hundreds of files → closer to ${MAX_UNITS}. Prefer per-directory or per-module slicing over arbitrary file lists.
+   Scale the count to the actual work: few files → closer to ${MIN_WORK_UNITS}; hundreds of files → closer to ${MAX_WORK_UNITS}. Prefer per-directory or per-module slicing over arbitrary file lists.
 
 3. **Determine the e2e test recipe.** Figure out how a worker can verify its change actually works end-to-end — not just that unit tests pass. Look for:
    - A `claude-in-chrome` skill or browser-automation tool (for UI changes: click through the affected flow, screenshot the result)
@@ -41,7 +42,7 @@ Call the `${ENTER_PLAN_MODE_TOOL_NAME}` tool now to enter plan mode, then:
    - A dev-server + curl pattern (for API changes: start the server, hit the affected endpoints)
    - An existing e2e/integration test suite the worker can run
 
-   If you cannot find a concrete e2e path, use the `${MIN_UNITS_SCALE}` tool to ask the user how to verify this change end-to-end. Offer 2–3 specific options based on what you found (e.g., "Screenshot via chrome extension", "Run `bun run dev` and curl the endpoint", "No e2e — unit tests are sufficient"). Do not skip this — the workers cannot ask the user themselves.
+   If you cannot find a concrete e2e path, use the `${FEW_FILES_UNIT_COUNT}` tool to ask the user how to verify this change end-to-end. Offer 2–3 specific options based on what you found (e.g., "Screenshot via chrome extension", "Run `bun run dev` and curl the endpoint", "No e2e — unit tests are sufficient"). Do not skip this — the workers cannot ask the user themselves.
 
    Write the recipe as concrete, thorough steps a worker can execute autonomously without asking clarifying questions. Include setup (dev server, build first), the exact commands to verify, expected output or signals, and any gotchas you hit while researching.
 
@@ -51,11 +52,11 @@ Call the `${ENTER_PLAN_MODE_TOOL_NAME}` tool now to enter plan mode, then:
    - The e2e test recipe (or "skip e2e because …" if the user chose that)
    - The exact worker instructions you will give each agent (the shared template)
 
-5. Call `${MAX_UNITS_SCALE}` to present the plan for approval.
+5. Call `${MANY_FILES_UNIT_COUNT}` to present the plan for approval.
 
 ## Phase 2: Spawn Workers (After Plan Approval)
 
-Once the plan is approved, spawn one background agent per work unit using the `${ASK_USER_TOOL_NAME}` tool. **All agents must use `isolation: "worktree"` and `run_in_background: true`.** Launch them all in a single message block so they run in parallel.
+Once the plan is approved, spawn one background agent per work unit using the `${ASK_USER_TOOL}` tool. **All agents must use `isolation: "worktree"` and `run_in_background: true`.** Launch them all in a single message block so they run in parallel.
 
 For each agent, the prompt must be fully self-contained. Include:
 - The overall goal (the user's instruction)
@@ -65,11 +66,11 @@ For each agent, the prompt must be fully self-contained. Include:
 - The worker instructions below, copied verbatim:
 
 ```
-${EXIT_PLAN_MODE_TOOL_NAME}
+${PRESENT_PLAN_TOOL}
 ```
 
 Use `subagent_type: "general-purpose"` unless a more specific agent type fits.
-
+${SPAWN_AGENT_TOOL}
 ## Phase 3: Track Progress
 
 After launching all workers, render an initial status table:

@@ -3,6 +3,6 @@ name: 'Data: Artifact post-read conditional files connector'
 description: >-
   Connects listing files with reading, publishing, or initializing them if not
   yet created.
-ccVersion: 2.1.277
+ccVersion: 2.1.292
 -->
-), read and publish those files, and if no `
+), then edit and publish them as described there, and if no `

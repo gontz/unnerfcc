@@ -392,7 +392,13 @@ function p2_uncapEffortEnum(js) {
       };
     }
     if (nCapped > 1) {
-      const KEY_BEFORE = /effortLevel:[$\w]+\($/;
+      // Both spellings are the persisted /effort schema field: the eager
+      // `effortLevel:W([...])` and the lazy `effortLevel:()=>W([...])` Bun emits
+      // for a deferred schema. v2.1.292 ships one of each in the same chunk, and
+      // the narrower anchor matched only the eager one, so allKeyed went false and
+      // P2 refused BOTH -- leaving the persisted /effort setting capped at xhigh in
+      // the shipped binary, which is the exact nerf this patch exists to lift.
+      const KEY_BEFORE = /effortLevel:(?:\(\)\s*=>\s*)?[$\w]+\($/;
       let idx = -1, allKeyed = true;
       while ((idx = js.indexOf(capped, idx + 1)) !== -1) {
         if (!KEY_BEFORE.test(js.slice(Math.max(0, idx - 40), idx))) { allKeyed = false; break; }
@@ -621,11 +627,36 @@ function applyAcrossModules(modules) {
     byPatch.set(name, { ...cur, detail: `${cur.detail} [applied in ${n} modules; the counts above are for ${cur.relPath} only]` });
   }
 
-  const ok = [...byPatch.values()].every((v) => v.status === "applied" || v.status === "already");
+  // A patch "failing" in a module that simply doesn't contain it is normal and
+  // uninteresting -- that is every one of the ~2500 modules it does not live in,
+  // and it always reports "anchor MISSING:". A failure with any OTHER detail is a
+  // substantive refusal: the patch DID find its target and declined to act (P2's
+  // "ambiguous: N capped effort enums ... refusing to guess", for instance). The
+  // applied > already > failed ranking would let a higher-ranked result from a
+  // different module hide that, which is how two capped persisted-effort enums
+  // shipped unpatched while the summary read ALREADY. Surface them separately.
+  const refusals = [];
+  for (const m of modules) {
+    const { results } = applyCodePatches(m.source, { cascadeAppliedElsewhere });
+    for (const r of results) {
+      if (!PATCH_NAMES.has(r.name)) continue;
+      if (r.status !== "failed") continue;
+      if (String(r.detail).startsWith("anchor MISSING:")) continue;
+      refusals.push({ name: r.name, relPath: m.relPath, detail: r.detail });
+    }
+  }
+  for (const r of refusals) {
+    const cur = byPatch.get(r.name);
+    if (cur.status === "failed") continue; // already the headline
+    byPatch.set(r.name, { ...cur, detail: `${cur.detail} [!! also REFUSED in ${r.relPath}: ${r.detail}]` });
+  }
+
+  const ok = [...byPatch.values()].every((v) => v.status === "applied" || v.status === "already") && refusals.length === 0;
   return {
     touched: [...touched.entries()].map(([relPath, source]) => ({ relPath, source })),
     byPatch,
     ok,
+    refusals,
     cascadeAppliedElsewhere,
   };
 }

@@ -3,7 +3,7 @@ name: 'Data: Tool use reference — Python'
 description: >-
   Python tool use reference including tool runner, manual agentic loop, code
   execution, and structured outputs
-ccVersion: 2.1.251
+ccVersion: 2.1.292
 -->
 # Tool Use - Python
 
@@ -315,14 +315,16 @@ tool_result = {
 
 ## Tool Choice
 
+`tool_choice` is `{"type": "auto"}` by default. Forcing a call (`{"type": "any"}` or `{"type": "tool", "name": ...}`) returns a 400 on {{OPUS_NAME}}, {{SONNET_NAME}}, {{FABLE_NAME}}, and {{MYTHOS_NAME}}; {{PREV_OPUS_NAME}}, {{PREV_SONNET_NAME}}, and older models accept it. Steer with the prompt instead, and keep the schema guarantee with `strict: true`:
+
 ```python
 response = client.messages.create(
     model="{{OPUS_ID}}",
     max_tokens=16000,
-    tools=tools,
-    tool_choice={"type": "tool", "name": "get_weather"},  # Force specific tool
-    messages=[{"role": "user", "content": "What's the weather in Paris?"}]
+    tools=[{**tool, "strict": True} for tool in tools],  # schemas must set additionalProperties: false
+    messages=[{"role": "user", "content": "What's the weather in Paris? Use the get_weather tool."}]
 )
+# auto does not guarantee a call - check for a tool_use block and re-prompt if none came back
 ```
 
 ---

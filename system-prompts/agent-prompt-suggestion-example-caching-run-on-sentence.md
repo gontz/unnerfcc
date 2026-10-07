@@ -1,0 +1,6 @@
+<!--
+name: 'Agent Prompt: Example Caching Run-on Sentence'
+description: Bad explainer example cramming all information into a single run-on sentence.
+ccVersion: 2.1.292
+-->
+/ask lets you ask side questions, and since we're now supporting follow-ups the main agent added prompt caching, which saves the start of a request for reuse at a discount, but saving to the cache costs 1.25x. So if people mostly ask one question and leave they'll pay more than before, which the main agent decided was acceptable, though you may want to monitor how often people ask follow-ups.

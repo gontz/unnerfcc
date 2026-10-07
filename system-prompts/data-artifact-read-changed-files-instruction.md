@@ -1,6 +1,6 @@
 <!--
 name: 'Data: Artifact read changed files instruction'
 description: Instructs reading each file to be modified before making changes.
-ccVersion: 2.1.273
+ccVersion: 2.1.292
 -->
- Read each file you will change (
+read each file you will change (

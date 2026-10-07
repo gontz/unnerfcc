@@ -3,8 +3,8 @@ name: 'Tool Result: Artifact files count exceeded limit'
 description: >-
   Validation error when the number of published files exceeds the per-version
   limit.
-ccVersion: 2.1.263
+ccVersion: 2.1.292
 variables:
   - MAX_ENTRIES
 -->
-removals included), over the limit of ${MAX_ENTRIES} per version. Publish fewer files per version.
+, which is over the limit of ${MAX_ENTRIES} entries in one publish. Nothing was published: send at most 

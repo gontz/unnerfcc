@@ -4,7 +4,7 @@ description: >-
   Reference guide for sending and receiving events on managed agent sessions,
   including streaming, polling, reconnection, message queuing, interrupts,
   session-budget pauses, and event payload details
-ccVersion: 2.1.270
+ccVersion: 2.1.292
 -->
 # Managed Agents - Events & Steering
 
@@ -43,7 +43,7 @@ client.beta.sessions.events.send(
 
 Constraints:
 
-- **Model-gated: {{OPUS_NAME}}, {{PREV_OPUS_NAME}}, {{SONNET_NAME}}, {{FABLE_NAME}}, and {{MYTHOS_NAME}}.** Only the agent's **primary** model is checked - `system.message` lands on the primary thread only, so subagent models are not considered. On an unsupported primary model the event is rejected with a `model_does_not_support_mid_conversation_system` validation error.
+- **Model-gated: {{FABLE_NAME}}, {{MYTHOS_NAME}}, {{PREV_FABLE_NAME}}, {{PREV_MYTHOS_NAME}}, {{OPUS_NAME}}, {{PREV_OPUS_NAME}}, Claude Opus 4.8, and {{SONNET_NAME}} (not {{PREV_SONNET_NAME}}).** Only the agent's **primary** model is checked - `system.message` lands on the primary thread only, so subagent models are not considered. On an unsupported primary model the event is rejected with a `model_does_not_support_mid_conversation_system` validation error.
 - **While the session is idle with `stop_reason: requires_action`** (blocked on `user.custom_tool_result` / `user.tool_confirmation`), a `system.message` is accepted **only when it trails a tool result event in the same request**. Sent on its own - or alongside a `user.message` - it is rejected until the pending tool events are resolved.
 - `content` accepts 1-1000 text items.
 
@@ -202,7 +202,7 @@ await sendMessage(sessionId, "And compare the two");
 // Stream once - agent responds to all three as a coherent turn
 ```
 
-Events can be sent up to the Session at any time. There is no need to wait on a specific session status to enqueue new events via `client.beta.sessions.events.send()`. One exception: a session paused at its budget (`stop_reason: budget_reached`) accepts only settle events - a `user.message` there is a 400. See § Reaching a session budget.
+Events can be sent up to the Session at any time. There is no need to wait on a specific session status to enqueue new events via `client.beta.sessions.events.send()`. Two exceptions: while a call is waiting on you (`stop_reason: requires_action`) or the session is paused at its budget (`budget_reached`), only settle events are accepted - a `user.message` there is a 400. See § Reaching a session budget.
 
 ### Interrupt
 

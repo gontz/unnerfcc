@@ -3,10 +3,12 @@ name: 'Agent Prompt: Schedule cloud agent API actions'
 description: >-
   Describes the routines API actions the /schedule agent uses to manage cloud
   Claude Code agents — list, get, create, update, run, plus run logs.
-ccVersion: 2.1.251
+ccVersion: 2.1.292
 variables:
   - FIRST_STEP_INSTRUCTION
   - CLOUD_ROUTINES_TOOL_NAME
+  - CLOUD_ROUTINES_TOOL_SELECT
+  - DEFAULT_MODEL_NAME
 -->
 
 ${FIRST_STEP_INSTRUCTION}
@@ -42,6 +44,6 @@ For a recurring schedule:
     "ccr": {
       "environment_id": "ENVIRONMENT_ID",
       "session_context": {
-        "model": "claude-sonnet-5",
+        "model": "${CLOUD_ROUTINES_TOOL_SELECT}",
         "sources": [
           {"git_repository": {"url": "

@@ -1,0 +1,521 @@
+{
+  "ccVersion": "2.1.292",
+  "generatedBy": "bucket-analyze.mjs",
+  "report": [
+    {
+      "file": "system-reminder-auto-attached-context-account-workspace.md",
+      "verdict": "keep",
+      "reasoning": "This instruction explains the origin of automatically attached account/workspace metadata so the model does not redundantly echo it back to the user."
+    },
+    {
+      "file": "system-reminder-deferred-tool-call-follow-up-guidance.md",
+      "verdict": "keep",
+      "reasoning": "Handles the case where a user explicitly cancelled an earlier request while a background tool was executing. Keeping follow-ups minimal on cancelled tasks respects user intent."
+    },
+    {
+      "file": "agent-prompt-you-should-know-learn-line-format.md",
+      "verdict": "keep",
+      "reasoning": "Specifies the exact line format for the 'learn' field in structured UI output."
+    },
+    {
+      "file": "agent-prompt-you-should-know-learn-line-template.md",
+      "verdict": "keep",
+      "reasoning": "Defines the template placeholder for a structured UI output line."
+    },
+    {
+      "file": "agent-prompt-claude-test-author-2.md",
+      "verdict": "keep",
+      "reasoning": "Defines the inter-agent reporting format for a background subagent where the parent orchestrator reads the drafted files directly from disk."
+    },
+    {
+      "file": "system-prompt-chrome-connection-failed.md",
+      "verdict": "keep",
+      "reasoning": "Technical failure handling notice that informs the model that browser tools are unavailable and provides read-only web tool fallbacks."
+    },
+    {
+      "file": "skill-loop-write-brief-update-as-text.md",
+      "verdict": "keep",
+      "reasoning": "Directs the model to output a brief visible progress update before scheduling the next background tick in a periodic loop."
+    },
+    {
+      "file": "tool-description-artifact-action-preview.md",
+      "verdict": "keep",
+      "reasoning": "Tool description boundary and failure guidance instructing the model to report preview failures cleanly rather than attempting alternative workarounds."
+    },
+    {
+      "file": "tool-result-artifact-db-write-less-per-document.md",
+      "verdict": "keep",
+      "reasoning": "This is a tool error message returned when an artifact database document exceeds storage limits, not a system prompt restriction."
+    },
+    {
+      "file": "agent-prompt-you-should-know-explanation-shape.md",
+      "verdict": "keep",
+      "reasoning": "Structured format definition specifying the layout and structure of a compact UI learning card widget."
+    },
+    {
+      "file": "agent-prompt-you-should-know-title-feature-short.md",
+      "verdict": "keep",
+      "reasoning": "Title length specification for an in-product UI learning card."
+    },
+    {
+      "file": "agent-prompt-you-should-know-none-output-instruction.md",
+      "verdict": "keep",
+      "reasoning": "Machine format instruction specifying the null-case output format when no suggestion qualifies."
+    },
+    {
+      "file": "skill-hill-climbing-guide.md",
+      "verdict": "keep",
+      "reasoning": "Instructs the model to write detailed evaluation data and narratives to dedicated report files rather than polluting the interactive chat during long-running eval loops."
+    },
+    {
+      "file": "skill-claude-test-run.md",
+      "verdict": "keep",
+      "reasoning": "Matches calibration example 2: provides interruption-appropriate UX for unsolicited skill suggestions without holding back substantive work when invoked."
+    },
+    {
+      "file": "skill-description-claude-test.md",
+      "verdict": "keep",
+      "reasoning": "Skill description wording matching calibration example 2 for unsolicited offers."
+    },
+    {
+      "file": "agent-prompt-suggestion-user-simplify-communication.md",
+      "verdict": "keep",
+      "reasoning": "Tone and accessibility guidance for a proactive educational suggestion generator."
+    },
+    {
+      "file": "agent-prompt-you-should-know-title-line-template.md",
+      "verdict": "keep",
+      "reasoning": "Template formatting line for UI suggestion card titles."
+    },
+    {
+      "file": "agent-prompt-project-thread-status-card-writer.md",
+      "verdict": "keep",
+      "reasoning": "Structured JSON schema and character constraints for mobile notifications and compact UI status cards."
+    },
+    {
+      "file": "skill-claude-code-doctor.md",
+      "verdict": "keep",
+      "reasoning": "Comprehensive diagnostic procedure for the Claude Code doctor skill with full multi-step health checks."
+    },
+    {
+      "file": "skill-insights-report-output.md",
+      "verdict": "keep",
+      "reasoning": "Command output formatter directing the user to the generated HTML insights report."
+    },
+    {
+      "file": "skill-code-review-effort-low-no-fixture-skip-turns-body.md",
+      "verdict": "keep",
+      "reasoning": "Defines the specific behavioral contract of the low-effort code review tier to perform a fast hunk-only scan without deep file traversals."
+    },
+    {
+      "file": "skill-code-review-effort-low-scaled-findings.md",
+      "verdict": "keep",
+      "reasoning": "Operational definition for the low-effort code review tier focusing strictly on hunk-visible runtime correctness bugs."
+    },
+    {
+      "file": "skill-code-review-effort-low-turns-body.md",
+      "verdict": "keep",
+      "reasoning": "Turn specification for the low-effort code review tier."
+    },
+    {
+      "file": "skill-code-review-effort-low-no-fixture-skip-turns-body.md",
+      "verdict": "keep",
+      "reasoning": "Defines the scope of findings for the low-effort code review tier."
+    },
+    {
+      "file": "skill-code-review-effort-low-scaled-findings.md",
+      "verdict": "keep",
+      "reasoning": "Defines the scope of findings for the low-effort code review tier."
+    },
+    {
+      "file": "skill-code-review-effort-low-turns-body.md",
+      "verdict": "keep",
+      "reasoning": "Low-effort code review is structured as a quick two-turn hunk-only scan without subagents or full-file reads; these boundaries define the low-tier execution contract rather than an artificial nerf."
+    },
+    {
+      "file": "agent-prompt-claude-test-author.md",
+      "verdict": "keep",
+      "reasoning": "The spec author subagent writes test draft files directly to disk; returning a short final message to the parent skill is an internal subagent completion protocol."
+    },
+    {
+      "file": "skill-code-review-effort-medium.md",
+      "verdict": "lift",
+      "reasoning": "The body text retains an artificial cap of up to 6 candidates per angle and restricts findings to a one-line summary, limiting candidate surfacing ahead of verification.",
+      "rule": {
+        "stock": "## Phase 1 — Find candidates (3 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle, up to 6 each)\n\nRun **8 independent finder angles** via the ${AGENT_TOOL_NAME} tool. Each\nsurfaces **up to 6 candidate findings** with `file`, `line`, a one-line\n`summary`, and a concrete `failure_scenario`. ${FINDER_INSTRUCTIONS}",
+        "unnerf": "## Phase 1 — Find candidates (3 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle)\n\nRun **8 independent finder angles** via the ${AGENT_TOOL_NAME} tool. Each\nsurfaces all candidate findings with `file`, `line`, a\n`summary`, and a concrete `failure_scenario`. ${FINDER_INSTRUCTIONS}",
+        "description": "code-review medium: drop 6-candidate caps and one-line summary limit"
+      }
+    },
+    {
+      "file": "skill-code-review-findings-entry-schema.md",
+      "verdict": "keep",
+      "reasoning": "The 60-character limit applies specifically to the `short_summary` schema field for table rendering, while full findings are captured in `summary` and `failure_scenario`."
+    },
+    {
+      "file": "agent-prompt-batch-slash-command.md",
+      "verdict": "keep",
+      "reasoning": "Process brevity constraints around test recipes and failure notes have already been lifted by existing rules, and the remaining item formats are standard plan structuring."
+    },
+    {
+      "file": "agent-prompt-transcript-summarization-prompt.md",
+      "verdict": "keep",
+      "reasoning": "The summarization prompt governs context-window compaction and explicitly instructs completeness on all decisions, state, and difficulties even at the cost of length."
+    },
+    {
+      "file": "skill-model-migration-guide.md",
+      "verdict": "keep",
+      "reasoning": "The flagged text is a recommended prompt snippet in a developer migration guide for client-side transcript compaction in API integrations, not an active behavioral constraint on Claude Code itself. Modifying reference templates in documentation would distort API guidance rather than un-nerf agent capabilities."
+    },
+    {
+      "file": "skill-token-usage-breakdown-chart-guidance.md",
+      "verdict": "lift",
+      "reasoning": "The stock instruction artificially limits the analysis and explanation of the token breakdown chart to 'a few short bullet points, not paragraphs' and mandates brevity on caveats. Removing these caps allows Claude to provide a complete, nuanced explanation.",
+      "rule": {
+        "stock": "Then give the totals in a line, and explain the chart briefly in everyday words without technical jargon — a few short bullet points, not paragraphs. Close with these caveats, briefly: \n",
+        "unnerf": "Then give the totals in a line, and explain the chart clearly in everyday words without technical jargon. Close with these caveats:\n",
+        "description": "token breakdown chart: drop brevity caps on explanation and caveats"
+      }
+    },
+    {
+      "file": "agent-prompt-concise-conversation-summarization-prompt.md",
+      "verdict": "keep",
+      "reasoning": "The 2000-word limit is a mechanical context-budget constraint for conversation compaction summaries, while explicitly instructing Claude to preserve all facts, paths, and details."
+    },
+    {
+      "file": "agent-prompt-you-should-know-prompt-wrapper.md",
+      "verdict": "keep",
+      "reasoning": "This is a direct-dispatch wrapper for answering an accepted YSK offer in chat without unneeded tool calls. Uncertain whether it harms reasoning, so leaning keep."
+    },
+    {
+      "file": "tool-description-artifact-sharing-workflow.md",
+      "verdict": "keep",
+      "reasoning": "Per Calibration 2, offering artifact sharing unprompted in 'one short line' is appropriate UX for an unsolicited offer that the user can easily accept or wave off."
+    },
+    {
+      "file": "tool-result-artifact-private-app-card.md",
+      "verdict": "keep",
+      "reasoning": "The UI displays the artifact publish as a rich card with the URL, so a one-sentence summary and omitting the raw URL avoids redundant clutter."
+    },
+    {
+      "file": "agent-prompt-you-should-know-length-limit-standard.md",
+      "verdict": "keep",
+      "reasoning": "This defines the word limit for the background unsolicited You-Should-Know feature notification, representing interruption-appropriate UX rather than substantive work throttling."
+    },
+    {
+      "file": "system-prompt-attached-machine-request-attach-guidance.md",
+      "verdict": "keep",
+      "reasoning": "Specifying a one-line explanation before triggering the attach-machine tool dialog is standard interactive UI pacing before a modal confirmation."
+    },
+    {
+      "file": "tool-parameter-enable-browser-intent.md",
+      "verdict": "keep",
+      "reasoning": "This is a parameter description in a tool schema defining the intent field, not an artificial constraint on Claude's capability."
+    },
+    {
+      "file": "agent-prompt-you-should-know-short-title-template.md",
+      "verdict": "keep",
+      "reasoning": "This is a template formatting placeholder for a short title in a UI notification card."
+    },
+    {
+      "file": "agent-prompt-you-should-know-learn-line-format.md",
+      "verdict": "keep",
+      "reasoning": "This specifies the machine-parsed line format for background learning suggestions."
+    },
+    {
+      "file": "agent-prompt-you-should-know-learn-line-template.md",
+      "verdict": "keep",
+      "reasoning": "This is a template formatting line for structured suggestion output."
+    },
+    {
+      "file": "skill-code-review-low-effort-one-line-output.md",
+      "verdict": "keep",
+      "reasoning": "The one-line format per finding is a structured output convention (file:line — description) matching linter output genres, not a hold-back restriction."
+    },
+    {
+      "file": "skill-code-review-output-one-line-list.md",
+      "verdict": "keep",
+      "reasoning": "Structured output specification for review findings list that actively encourages widening review hunks to ensure sufficient findings are caught."
+    },
+    {
+      "file": "agent-prompt-suggestion-product-err-on-side-of-silence.md",
+      "verdict": "keep",
+      "reasoning": "Per Calibration 2, restraining background proactive suggestions from spamming unwanted interruptions is appropriate product UX."
+    },
+    {
+      "file": "system-prompt-loop-tick-write-status-update.md",
+      "verdict": "keep",
+      "reasoning": "Instructing a brief status update on an autonomous loop tick keeps background logging readable without consuming unnecessary turn output."
+    },
+    {
+      "file": "tool-description-artifact-finding-types-2.md",
+      "verdict": "keep",
+      "reasoning": "Per Calibration 2, keeping an unsolicited note about codebase file setup to one line avoids derailing the user's workflow."
+    },
+    {
+      "file": "skill-managed-agents-onboard-offer-quickstart-or-interview.md",
+      "verdict": "keep",
+      "reasoning": "Per Calibration 2, offering an unsolicited matching template once before proceeding with onboarding is clean interactive UX."
+    },
+    {
+      "file": "agent-prompt-you-should-know-learn-line-constraints.md",
+      "verdict": "keep",
+      "reasoning": "Length constraints for the proactive 'learn:' badge format to fit within notification UI cards."
+    },
+    {
+      "file": "skill-code-review-low-effort-one-line-output.md",
+      "verdict": "keep",
+      "reasoning": "Specifies structured linter-like formatting for review findings, adhering to output medium standards."
+    },
+    {
+      "file": "skill-code-review-output-one-line-list.md",
+      "verdict": "keep",
+      "reasoning": "Standard structured findings output format for code review passes."
+    },
+    {
+      "file": "skill-claude-test-run.md",
+      "verdict": "keep",
+      "reasoning": "This section guides the interactive CLI test runner's message discipline and detail paging protocol. Leaning keep to avoid breaking the test skill's interaction model."
+    },
+    {
+      "file": "tool-result-artifact-preview-failure-guidance.md",
+      "verdict": "keep",
+      "reasoning": "Directing Claude to report failure when an artifact preview check fails and avoid unsupported alternate checks is standard error handling in this sandbox."
+    },
+    {
+      "file": "agent-prompt-side-agent-human-attention-guidance.md",
+      "verdict": "keep",
+      "reasoning": "Protects human attention against unsolicited background agent spam; matches Calibration 2 guidance."
+    },
+    {
+      "file": "tool-result-chat-not-linked-to-computer.md",
+      "verdict": "keep",
+      "reasoning": "Prevents Claude from hallucinating troubleshooting steps or capabilities when running in an unlinked environment."
+    },
+    {
+      "file": "system-prompt-token-cost-efficiency-reminder.md",
+      "verdict": "lift",
+      "reasoning": "This reminder induces artificial frugality and hold-back behavior by framing turns around cost savings instead of doing whatever the task requires.",
+      "rule": {
+        "stock": "The user pays per token for your turns, and wants the job done for what it needs and no more.\n",
+        "unnerf": "Do whatever the task requires thoroughly and completely, without cutting corners or withholding necessary work.\n",
+        "description": "token cost reminder: prioritize thoroughness and completeness over artificial frugality"
+      }
+    },
+    {
+      "file": "skill-eval-building-guide.md",
+      "verdict": "keep",
+      "reasoning": "The instruction directs Claude to keep chat updates focused and point to the generated report.html viewer rather than dumping 100 cases into terminal chat, which is proper CLI tool UX."
+    },
+    {
+      "file": "skill-doctor-prompt-audit-disabled-fallback.md",
+      "verdict": "keep",
+      "reasoning": "This is a brief fallback notice informing the user that a disabled skill cannot run and explaining how to re-enable it; brevity is appropriate for an error notification."
+    },
+    {
+      "file": "agent-prompt-web-fetch-specialist.md",
+      "verdict": "keep",
+      "reasoning": "An un-nerf rule dropping the brevity cap and directing full reporting is already registered for this file in existingRules."
+    },
+    {
+      "file": "agent-prompt-side-agent-example-critique-worthwhile-exploration.md",
+      "verdict": "keep",
+      "reasoning": "This is an example critique string for unsolicited proactive suggestions ('You Should Know'), where high confidence is required before interrupting the user."
+    },
+    {
+      "file": "agent-prompt-artifact-editor-decision.md",
+      "verdict": "keep",
+      "reasoning": "This is a structured-output decision prompt for an automated patch editor where strict JSON output without preamble is required for machine execution."
+    },
+    {
+      "file": "agent-prompt-suggestion-output-learn-none-fallback.md",
+      "verdict": "keep",
+      "reasoning": "Instructs returning 'learn: none' when there are no worthwhile unprompted tips, preventing unwanted unsolicited interruptions."
+    },
+    {
+      "file": "agent-prompt-side-agent-example-critique-clause-count.md",
+      "verdict": "keep",
+      "reasoning": "Critique example governing unprompted notification titles, which should remain brief and scannable."
+    },
+    {
+      "file": "agent-prompt-you-should-know-rewrite-technical.md",
+      "verdict": "keep",
+      "reasoning": "Word limits on 'You Should Know' rewrites are UI formatting constraints for compact proactive notification cards."
+    },
+    {
+      "file": "data-artifact-publish-scratchpad-single-call-prefix.md",
+      "verdict": "keep",
+      "reasoning": "'Publish them in ONE call' is a mechanical tool invocation instruction required to bundle multi-file artifacts into a single publish call."
+    },
+    {
+      "file": "data-artifact-publish-scratchpad-write-order-lead-in.md",
+      "verdict": "keep",
+      "reasoning": "Directs writing scratchpad files directly with file-writing tools rather than invoking shell scripts, which is mechanical execution flow."
+    },
+    {
+      "file": "agent-prompt-you-should-know-tag-fallback-none.md",
+      "verdict": "keep",
+      "reasoning": "Threshold check for unprompted proactive suggestions to avoid interrupting the user with weak topics."
+    },
+    {
+      "file": "skill-claude-test-onboarding.md",
+      "verdict": "keep",
+      "reasoning": "Pacing and line limits in Claude Test onboarding structure the interactive wizard dialog while subagents handle deep code mapping in the background."
+    },
+    {
+      "file": "system-prompt-proactivity-high-autonomous-execution-guidelines.md",
+      "verdict": "keep",
+      "reasoning": "This high-proactivity prompt directs autonomous action and concise status updates rather than stopping to request permission."
+    },
+    {
+      "file": "agent-prompt-you-should-know-select-top-topic-or-none.md",
+      "verdict": "keep",
+      "reasoning": "Filters unsolicited proactive suggestions so Claude only interrupts when a genuinely useful suggestion exists."
+    },
+    {
+      "file": "skill-managed-agents-onboard-unknown-quickstart-name.md",
+      "verdict": "keep",
+      "reasoning": "Handles invalid quickstart argument by presenting valid options and asking the user to clarify instead of hallucinating a configuration."
+    },
+    {
+      "file": "agent-prompt-you-should-know-rewrite-simpler.md",
+      "verdict": "keep",
+      "reasoning": "Length cap applies to unprompted tip popup cards to fit the terminal notification UI widget."
+    },
+    {
+      "file": "skill-code-review-effort-high.md",
+      "verdict": "lift",
+      "reasoning": "Phase 1 caps candidate findings at up to 6 per finder angle, which artificially restricts recall in high-effort review mode.",
+      "rule": {
+        "stock": "## Phase 1 — Find candidates (3 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle, up to 6 each)\n\nRun **8 independent finder angles** via the ${AGENT_TOOL_NAME} tool. Each\nsurfaces **up to 6 candidate findings** with `file`, `line`, a one-line\n`summary`, and a concrete `failure_scenario`.",
+        "unnerf": "## Phase 1 — Find candidates (3 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle, uncapped)\n\nRun **8 independent finder angles** via the ${AGENT_TOOL_NAME} tool. Each\nsurfaces all candidate findings with `file`, `line`, a one-line\n`summary`, and a concrete `failure_scenario`.",
+        "description": "code-review high Phase 1: drop 6-candidate cap per finder angle"
+      }
+    },
+    {
+      "file": "agent-prompt-suggestion-explainer-quickly-digestible.md",
+      "verdict": "keep",
+      "reasoning": "Word limits on unsolicited proactive suggestion cards ensure digestible popup formatting in terminal UI."
+    },
+    {
+      "file": "agent-prompt-background-job-agent-instructions.md",
+      "verdict": "keep",
+      "reasoning": "The narration guideline has already been unnerfed, and delegating noisy investigations to subagents is proper context management for background jobs."
+    },
+    {
+      "file": "system-prompt-coordinator-role-and-tools.md",
+      "verdict": "keep",
+      "reasoning": "Instructs the coordinator to answer direct questions without spawning redundant subagents and to synthesize worker results."
+    },
+    {
+      "file": "agent-prompt-claude-test-explorer.md",
+      "verdict": "keep",
+      "reasoning": "The explorer subagent produces a concise structural summary of routes and components to feed into the spec authoring wizard without blowing context."
+    },
+    {
+      "file": "skill-code-review-effort-xhigh-inline.md",
+      "verdict": "lift",
+      "reasoning": "Phase 1 caps candidate findings at up to 8 per finder angle, which artificially restricts recall in extra-high effort code review.",
+      "rule": {
+        "stock": "## Phase 1 — Find candidates (5 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle, up to 8 each)\n\nRun **10 independent finder angles** in sequence yourself, in THIS context — do NOT spawn subagents for them. Each\nsurfaces **up to 8 candidate findings**.",
+        "unnerf": "## Phase 1 — Find candidates (5 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle, uncapped)\n\nRun **10 independent finder angles** in sequence yourself, in THIS context — do NOT spawn subagents for them. Each\nsurfaces all candidate findings.",
+        "description": "code-review xhigh-inline Phase 1: drop 8-candidate cap per finder angle"
+      }
+    },
+    {
+      "file": "skill-code-review-findings-empty-array-tool-only.md",
+      "verdict": "keep",
+      "reasoning": "Enforces structured reporting via tool calls instead of emitting loose text or creating extraneous review artifacts when no findings qualify."
+    },
+    {
+      "file": "agent-prompt-suggestion-critique-explain-titles-good.md",
+      "verdict": "keep",
+      "reasoning": "Guideline note describing concise title phrasing for proactive suggestion notifications."
+    },
+    {
+      "file": "skill-code-review-effort-low-header-prefix.md",
+      "verdict": "keep",
+      "reasoning": "Prefix string defining the summary header format for low-effort code reviews."
+    },
+    {
+      "file": "skill-code-review-effort-low-scaled-findings.md",
+      "verdict": "keep",
+      "reasoning": "This is a tier-specific definition for low-effort code reviews, where scoping to hunk-only diffs and scaled findings is intentional behavior for the user-selected effort level rather than an artificial nerf."
+    },
+    {
+      "file": "tool-parameter-enable-computer-use-intent.md",
+      "verdict": "keep",
+      "reasoning": "This is a parameter description for intent logging and confirmation UI, where concise phrasing accurately describes the intended format of the parameter value."
+    },
+    {
+      "file": "agent-prompt-you-should-know-observer-role.md",
+      "verdict": "keep",
+      "reasoning": "This defines the threshold for an unprompted background observer agent interrupting the user's workflow; maintaining a high bar for unsolicited suggestions is appropriate UX."
+    },
+    {
+      "file": "agent-prompt-you-should-know-default-learn-none.md",
+      "verdict": "keep",
+      "reasoning": "This is an interruption threshold for the unprompted background observer agent, preventing disruptive unsolicited popups when confidence is low."
+    },
+    {
+      "file": "skill-token-usage-no-chart-instruction.md",
+      "verdict": "keep",
+      "reasoning": "Instructs the skill to report the absence of recorded token usage as a simple line rather than rendering an empty chart, which is a sensible null-state UI behavior."
+    },
+    {
+      "file": "system-prompt-batch-edits-bash-efficiency.md",
+      "verdict": "keep",
+      "reasoning": "Advises using precise command-line tools for batch file edits instead of echoing entire file contents in chat, preserving tool efficiency and avoiding context waste."
+    },
+    {
+      "file": "agent-prompt-dream-memory-consolidation-phases.md",
+      "verdict": "keep",
+      "reasoning": "The candidate passage in this file has already been un-nerfed by an existing rule; no additional modification is required."
+    },
+    {
+      "file": "agent-prompt-you-should-know-interesting-vs-important.md",
+      "verdict": "keep",
+      "reasoning": "Filters unprompted observer interruptions to high-consequence topics rather than trivia, adhering to the standard for unrequested proactive suggestions."
+    },
+    {
+      "file": "data-artifact-publish-design-system-files-then.md",
+      "verdict": "keep",
+      "reasoning": "Directs the workflow to proceed smoothly with writing the artifact rather than pausing unnecessarily for user confirmation."
+    },
+    {
+      "file": "agent-prompt-you-should-know-rewrite-concise.md",
+      "verdict": "keep",
+      "reasoning": "Specifies sizing and clarity for an unsolicited observer popup notification, where brief UI-appropriate framing is required for non-disruptive presentation."
+    },
+    {
+      "file": "agent-prompt-you-should-know-language-and-output-rule.md",
+      "verdict": "keep",
+      "reasoning": "Standard output format and language selection directive for the observer subagent response, ensuring clean machine-parseable output."
+    },
+    {
+      "file": "agent-prompt-determine-which-memory-files-to-attach.md",
+      "verdict": "keep",
+      "reasoning": "Limits memory file retrieval to the most relevant items to protect the primary context window budget from unrelated memory pollution."
+    },
+    {
+      "file": "tool-description-artifact-title-guidelines.md",
+      "verdict": "keep",
+      "reasoning": "Describes UI title conventions for HTML documents and gallery card headers, which are mechanical naming constraints rather than process nerfs."
+    },
+    {
+      "file": "tool-result-cloud-review-acknowledge-briefly.md",
+      "verdict": "keep",
+      "reasoning": "Prevents redundant repetition of launch confirmation and billing metadata that was already rendered directly to the user in the UI."
+    },
+    {
+      "file": "agent-prompt-dream-memory-consolidation-phase-4-prune-and-index.md",
+      "verdict": "keep",
+      "reasoning": "The target summary requirement in this file is already fully un-nerfed by an existing rule; no further changes are needed."
+    },
+    {
+      "file": "agent-prompt-you-should-know-avoid-main-agent-addressed-topics.md",
+      "verdict": "keep",
+      "reasoning": "Prevents redundant background observer suggestions when the primary agent conversation is already actively handling the topic."
+    }
+  ]
+}

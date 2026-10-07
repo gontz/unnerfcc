@@ -4,32 +4,32 @@ description: >-
   Effort-tier prompt for extra-high code review run inline — 10 finder angles in
   the same context, up to 8 candidates each, dedup with no verify pass, then a
   gap sweep, capped at 15 findings.
-ccVersion: 2.1.219
+ccVersion: 2.1.292
 variables:
   - PHASE_0_GATHER_DIFF
-  - CORRECTNESS_ANGLES_A_TO_C
-  - CLEANUP_ANGLE_REUSE
-  - CLEANUP_ANGLE_SIMPLIFICATION
-  - CLEANUP_ANGLE_EFFICIENCY
-  - ALTITUDE_ANGLE
-  - CONVENTIONS_ANGLE
-  - OUTPUT_FORMAT
+  - ANGLES_A_THROUGH_C
+  - ANGLE_F
+  - ANGLE_G
+  - ANGLE_H
+  - ANGLE_I
+  - ANGLE_J
+  - EXTRA_FINDER_ANGLES
 -->
-`xhigh effort → 10 inline angles → dedup (no verify) → sweep → ≤15 findings`
+`
 
 You are reviewing for **recall** at extra-high effort: catch every real bug. At
 this level, catching real bugs matters more than avoiding false positives — a
 missed bug ships. Err on the side of surfacing.
 
 ${PHASE_0_GATHER_DIFF}
-## Phase 1 — Find candidates (5 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle, up to 8 each)
+## Phase 1 — Find candidates (5 correctness angles + 3 cleanup angles + 1 altitude angle + 1 conventions angle, uncapped)
 
 Run **10 independent finder angles** in sequence yourself, in THIS context — do NOT spawn subagents for them. Each
-surfaces **up to 8 candidate findings**. Do NOT let one angle's conclusions
+surfaces all candidate findings. Do NOT let one angle's conclusions
 suppress another's — if two angles flag the same line for different reasons,
 record both.
 
-${CORRECTNESS_ANGLES_A_TO_C}
+${ANGLES_A_THROUGH_C}
 ### Angle D — language-pitfall specialist
 
 Scan for the classic pitfalls of the diff's language/framework — for example:
@@ -46,12 +46,12 @@ through a registry/session/global — e.g. a caching provider holding a
 `delegate.get(...)` will re-enter the cache or recurse. Also check that the
 wrapper forwards all the methods the callers actually use.
 
-${CLEANUP_ANGLE_REUSE}
-${CLEANUP_ANGLE_SIMPLIFICATION}
-${CLEANUP_ANGLE_EFFICIENCY}
-${ALTITUDE_ANGLE}
-${CONVENTIONS_ANGLE}
-${OUTPUT_FORMAT}
+${ANGLE_F}
+${ANGLE_G}
+${ANGLE_H}
+${ANGLE_I}
+${ANGLE_J}
+${EXTRA_FINDER_ANGLES}
 ## Phase 2 — Dedup only (no verify)
 
 Pool all candidates. Dedup near-duplicates only (same defect, same location, same reason → keep one). Do NOT run verifiers; do NOT re-judge. Sort by severity. Do NOT drop on uncertainty.

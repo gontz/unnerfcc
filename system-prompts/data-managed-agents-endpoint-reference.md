@@ -3,13 +3,13 @@ name: 'Data: Managed Agents endpoint reference'
 description: >-
   Comprehensive reference for Managed Agents API endpoints, SDK methods,
   request/response schemas, error handling, and rate limits
-ccVersion: 2.1.251
+ccVersion: 2.1.292
 -->
 # Managed Agents - Endpoint Reference
 
 All endpoints require `x-api-key` and `anthropic-version: 2023-06-01` headers. Managed Agents endpoints additionally require the `anthropic-beta` header.
 
-> Most users should define agents and environments as version-controlled YAML applied with the `ant` CLI - see `shared/anthropic-cli.md`. The endpoints below are the underlying API that the CLI and SDKs drive.
+> Most users should define agents and environments as version-controlled files synced with `ant apply` - see `shared/anthropic-cli.md`. The endpoints below are the underlying API that the CLI and SDKs drive.
 
 ## Beta Headers
 
@@ -17,7 +17,7 @@ All endpoints require `x-api-key` and `anthropic-version: 2023-06-01` headers. M
 anthropic-beta: managed-agents-2026-04-01
 ```
 
-The SDK adds this header automatically for all `client.beta.{agents,environments,sessions,vaults,memory_stores,deployments,deployment_runs}.*` calls. Skills endpoints use `skills-2025-10-02`; Files endpoints use `files-api-2025-04-14`.
+The SDK adds this header automatically for all `client.beta.{agents,environments,sessions,vaults,deployments,deployment_runs}.*` calls. Memory store endpoints (`client.beta.memory_stores.*`) use `agent-memory-2026-07-22` instead, which the SDK also sets; sending both headers on a memory store request returns a 400. The Files and Skills APIs are out of beta and need no beta header.
 
 ---
 
@@ -51,7 +51,7 @@ All resources are under the `beta` namespace. Python and TypeScript share identi
 
 **Agent shorthand:** `agent` on session create accepts three forms - a bare string (`agent="agent_abc123"`, latest version), a pinned reference `{type: "agent", id, version}`, or `{type: "agent_with_overrides", id, version?, model?, system?, tools?, mcp_servers?, skills?}` to override those fields for this session only (see `shared/managed-agents-core.md` -> Override agent configuration for a session).
 
-**Model shorthand:** `model` on agent create accepts either a bare string (`model="{{OPUS_ID}}"` - uses `standard` speed) or the full config object, which takes `speed`, `effort`, and `inference_geo` alongside `id`: `{id: "{{OPUS_ID}}", speed: "fast"}`, `{id: "{{OPUS_ID}}", effort: "high"}`, `{id: "{{OPUS_ID}}", inference_geo: "us"}`. `effort` accepts a level string (`low`/`medium`/`high`/`xhigh`/`max`) or `{type: "<level>"}`, and is **agent-configuration only** - an `effort` inside a per-session `model` override is ignored. `inference_geo` (`"us"` | `"global"`) pins the geography serving the agent's model requests, and unlike `effort` **is** applied in a per-session `model` override. See `shared/managed-agents-core.md` -> Effort on the agent model / Pinning inference geography. Note: `speed: "fast"` is supported on {{OPUS_NAME}} and Opus 4.8 - on the Claude API only, which includes Managed Agents but not Amazon Bedrock, Google Cloud, or Microsoft Foundry. Opus 4.7 fast mode has been removed; `speed: "fast"` on Opus 4.7 returns an error.
+**Model shorthand:** `model` on agent create accepts either a bare string (`model="{{OPUS_ID}}"` - uses `standard` speed) or the full config object, which takes `speed`, `effort`, and `inference_geo` alongside `id`: `{id: "{{OPUS_ID}}", speed: "fast"}`, `{id: "{{OPUS_ID}}", effort: "high"}`, `{id: "{{OPUS_ID}}", inference_geo: "us"}`. `effort` accepts a level string (`low`/`medium`/`high`/`xhigh`/`max`) or `{type: "<level>"}`, and in a per-session `model` override it sets the session's effort level (the agent's own `effort` isn't carried over, and a `model` override without `effort` runs at that model's default effort level). `inference_geo` (`"us"` | `"global"`) pins the geography serving the agent's model requests, and is also applied in a per-session `model` override. See `shared/managed-agents-core.md` -> Effort on the agent model / Pinning inference geography. Note: `speed: "fast"` is supported on {{OPUS_NAME}}, {{PREV_OPUS_NAME}}, and Opus 4.8 - on the Claude API only, which includes Managed Agents but not Amazon Bedrock, Google Cloud, or Microsoft Foundry. Opus 4.7 fast mode has been removed; `speed: "fast"` on Opus 4.7 returns an error.
 
 ---
 
@@ -122,7 +122,7 @@ Per-subagent event streams in multiagent sessions. See `shared/managed-agents-mu
 | `GET`    | `/v1/environments/{environment_id}/work/stats`         | WorkQueueStats       | Self-hosted work-queue depth/pending/workers. `x-api-key` auth. See `shared/managed-agents-self-hosted-sandboxes.md`. |
 | `POST`   | `/v1/environments/{environment_id}/work/{work_id}/stop` | StopWork            | Self-hosted: stop a claimed work item. `x-api-key` auth. |
 
-For `type: "self_hosted"`, `config` is the bare `{"type": "self_hosted"}` - `networking` and `packages` do not apply. (`networking` never governs `web_search` / `web_fetch` in either type - those are restricted per-tool with `allowed_domains` / `blocked_domains` in the agent toolset; see `shared/managed-agents-tools.md`.)
+For `type: "self_hosted"`, `config` is the bare `{"type": "self_hosted"}` - `networking` and `packages` do not apply. (`networking` never governs `web_search` / `web_fetch` in either type - those are turned off (`enabled: false`) or restricted per-tool with `allowed_domains` / `blocked_domains` in the agent toolset; see `shared/managed-agents-tools.md`.)
 
 ## Deployments
 
@@ -246,7 +246,14 @@ Immutable per-mutation snapshots (`memver_...`) - the audit and rollback surface
   "description": "string (optional, up to 2048 chars)",
   "system": "string (optional, up to 100,000 chars)",
   "tools": [
-    { "type": "agent_toolset_20260401" }
+    {
+      "type": "agent_toolset_20260401",
+      "default_config": { "permission_policy": { "type": "auto" } },
+      "configs": [
+        { "name": "web_fetch", "enabled": false },
+        { "name": "web_search", "enabled": false }
+      ]
+    }
   ],
   "skills": [
     { "type": "anthropic", "skill_id": "xlsx" },
@@ -305,7 +312,7 @@ Immutable per-mutation snapshots (`memver_...`) - the audit and rollback surface
 }
 ```
 
-> The `agent` field accepts a string ID, `{type: "agent", id, version}`, or `{type: "agent_with_overrides", id, version?, ...}` for session-local overrides of `model`/`system`/`tools`/`mcp_servers`/`skills`. Outside the overrides form, those fields live on the agent, not here. An `effort` inside a `model` override is ignored - set it on the agent. An `inference_geo` inside a `model` override **is** applied (omitting it clears the agent's pin for this session).
+> The `agent` field accepts a string ID, `{type: "agent", id, version}`, or `{type: "agent_with_overrides", id, version?, ...}` for session-local overrides of `model`/`system`/`tools`/`mcp_servers`/`skills`. Outside the overrides form, those fields live on the agent, not here. An `effort` inside a `model` override is applied (the agent's own `effort` isn't carried over, and a `model` override without `effort` runs at that model's default effort level). An `inference_geo` inside a `model` override **is** applied (omitting it clears the agent's pin for this session).
 >
 > **`budget`** (optional, create-only) is a hard dollar cap on the session's list-priced spend; `amount` is an integer string in minor units (cents - `"2500"` = $25.00), `USD` only. It can be changed or removed later via session update, never added. See `shared/managed-agents-core.md` -> Session budgets.
 >
@@ -368,7 +375,7 @@ Immutable per-mutation snapshots (`memver_...`) - the audit and rollback surface
 }
 ```
 
-> `system.message` events (append system-level context for this turn and later ones) use the same envelope with `type: "system.message"` - supported on {{OPUS_NAME}}, {{PREV_OPUS_NAME}}, {{SONNET_NAME}}, {{FABLE_NAME}}, and {{MYTHOS_NAME}}, checked against the agent's *primary* model only; see `shared/managed-agents-events.md` § Adding system context mid-session.
+> `system.message` events (append system-level context for this turn and later ones) use the same envelope with `type: "system.message"` - supported on {{FABLE_NAME}}, {{MYTHOS_NAME}}, {{PREV_FABLE_NAME}}, {{PREV_MYTHOS_NAME}}, {{OPUS_NAME}}, {{PREV_OPUS_NAME}}, Claude Opus 4.8, and {{SONNET_NAME}} (not {{PREV_SONNET_NAME}}), checked against the agent's *primary* model only; see `shared/managed-agents-events.md` § Adding system context mid-session.
 
 ### Define Outcome Event
 

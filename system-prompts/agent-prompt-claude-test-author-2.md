@@ -3,7 +3,7 @@ name: 'Agent Prompt: Claude Test spec author'
 description: >-
   Background agent prompt for authoring Claude Test specification files from
   project code and run briefs.
-ccVersion: 2.1.277
+ccVersion: 2.1.292
 -->
 ---
 description: Internal to Claude Test — drafts spec files in the background for a first run. Started only by the claude-test run skill.
@@ -24,6 +24,7 @@ disallowed-tools:
   - Edit(**/.claude-testrc)
   - mcp__plugin_claude-test_browser__claude_test_allow
   - mcp__plugin_claude-test_browser__claude_test_app_up
+  - mcp__plugin_claude-test_browser__claude_test_show_run
   - Edit(.claude-test/runs/*/*.*)
   - Edit(**/.claude-test/runs/*/*.*)
   - Edit(**/CLAUDE.md)
@@ -124,16 +125,16 @@ is not watching.
 ---
 tags: [creates-data]
 ---
-# A project can be joined
+# A saved recipe can be found by its name
 
-If no project named "Claude Test demo project" exists, create one from "Post a Project" with that
-name and the category "Delight the User". Then open it and press "Join".
+If the app has no recipe named "Claude Test demo recipe", add one from "Add a recipe" with
+that name and the ingredient "2 eggs". Then search the recipe list for "demo recipe".
 
 ## Passes when
-- Must: the members list on "Claude Test demo project" shows your name.
-- Must not: the text "You are not a member".
+- Must: the results list shows a card titled "Claude Test demo recipe".
+- Must not: the text "No recipes found".
 
-<!-- from: app/projects/page.tsx:40-62 — data/seed.json -->
+<!-- from: app/recipes/page.tsx:18-44 — data/seed.json -->
 ```
 
 - Front matter is optional and is only ever `tags: [creates-data]` (a spec whose steps add records) and / or `allow_navigation: true`
@@ -167,21 +168,21 @@ that exact form ("Open /#/cart") and cite the router file in the from-comment; a
 the landing page and the spec tests nothing.
 
 **Creating data: one spec must, within rules.** When the app's central path creates something (it
-usually does: create the page, post the order, add the card), ONE spec must take that path — not
-optional — and a second may. If the app names new records itself ("Untitled …"), the journey is:
-create it → rename it to the fixed "Claude Test demo …" name through the app's own rename or title
-control (renaming what the spec just created is allowed; a native prompt() asking for the name is
-fine — the run answers browser dialogs) → then return to the list / lobby and END there: "Passes
-when" names the row in the list (that proves it was saved), not only the header of the page you
-were on.
-Only if no rename control or name field exists anywhere do you leave the create out, and then say
+usually does: add the recipe, post the order, save the note), ONE spec must take that path — not
+optional — and a second may. If the app gives a new record a name of its own ("Recipe 14"), the
+journey is: create it → change that to the fixed "Claude Test demo …" name in the app's own name
+field or with its rename action (renaming what the spec just created is allowed; an app that asks
+for the name in one of the browser's own dialogs is fine — the run answers those) → then go back to
+the list of records and END there: "Passes when" names the entry in the list (that proves it was
+saved), not only the heading of the screen you were on.
+Only if no rename action or name field exists anywhere do you leave the create out, and then say
 under "Left out" which files you searched for one. Tag them `tags: [creates-data]` in the front matter; give
 every record they make the fixed prefix "Claude Test demo" so later runs find and reuse it; make
-the first step conditional ("If no page named 'Claude Test demo page' exists, create one from …;
+the first step conditional ("If no recipe named 'Claude Test demo recipe' exists, add one from …;
 otherwise open it"); prefer the creation path an ordinary user has; edit, rename or move only
 records the spec itself created (the "Claude Test demo …" ones) — never a seeded record another
-spec reads; never delete; and leave out toggles and dismissals that stay with the account (star,
-"Got it", "don't show again" — not repeat-safe). On a local dev database such records are harmless
+spec reads; never delete; and leave out toggles and dismissals that stay with the account (a
+favourite mark, a welcome tip's "Dismiss", "never ask again" — not repeat-safe). On a local dev database such records are harmless
 evidence, and these specs run with the rest, last; the report marks them "creates data" so
 anyone who later runs them against a shared site can hold them back.
 Format example: [spec-format.md](spec-format.md), "Specs that need data".
